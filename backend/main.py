@@ -6,8 +6,8 @@ import requests
 import json
 import os
 
-from database import engine, get_db, Base
-import models
+from .database import engine, get_db, Base
+from . import models
 
 # Criar tabelas no banco de dados SQLite local
 models.Base.metadata.create_all(bind=engine)
