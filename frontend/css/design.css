@@ -1,0 +1,125 @@
+/* ══════════════════════════════════════════════════════
+   DESIGN SYSTEM — Portal Grupo TRK v2.0
+   Variables, Reset, Typography
+   ══════════════════════════════════════════════════════ */
+
+/* ── VARIABLES ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  /* Backgrounds */
+  --bg:#ffffff;--bg2:#f7f8fa;--bg3:#f0f1f3;
+  --surface:#ffffff;--surface2:#fafbfc;
+  /* Borders */
+  --border:#e5e7eb;--border2:#d1d5db;--border3:#c0c4cc;
+  /* Text */
+  --text:#111111;--text2:#374151;--text3:#6b7280;--text4:#9ca3af;
+  /* Shadows */
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,.05),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.07),0 4px 10px rgba(0,0,0,.04);
+  --shadow-xl:0 20px 40px rgba(0,0,0,.08);
+  /* Brand Colors */
+  --rafael:#2563eb;--rafael-l:#eff6ff;--rafael-b:#dbeafe;
+  --tarik:#059669;--tarik-l:#ecfdf5;--tarik-b:#d1fae5;
+  --trk:#dc2626;--trk-l:#fef2f2;--trk-b:#fecaca;
+  --bpo:#7c3aed;--bpo-l:#f5f3ff;--bpo-b:#ede9fe;
+  /* Status */
+  --ok:#16a34a;--ok-l:#f0fdf4;--ok-b:#dcfce7;
+  --pend:#d97706;--pend-l:#fffbeb;--pend-b:#fef3c7;
+  --err:#dc2626;--err-l:#fef2f2;--err-b:#fecaca;
+  /* Banks */
+  --inter-c:#ff7a00;--inter-bg:#fff7ed;
+  --bradesco-c:#cc092f;--bradesco-bg:#fef2f2;
+  --santander-c:#ec0000;--santander-bg:#fef2f2;
+  /* Categories */
+  --drive:#ea580c;--drive-l:#fff7ed;
+  --omie:#2563eb;--omie-l:#eff6ff;
+  --banco:#374151;--banco-l:#f3f4f6;
+  --pipe:#7c3aed;--pipe-l:#f5f3ff;
+  /* Radii */
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-full:9999px;
+  /* Dimensions */
+  --header-h:64px;--nav-h:48px;--bottom-h:72px;
+  /* Easings */
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-out:cubic-bezier(0,0,.2,1);
+  --ease-bounce:cubic-bezier(.34,1.56,.64,1);
+  --ease-spring:cubic-bezier(.175,.885,.32,1.275);
+}
+
+/* ── DARK THEME ── */
+[data-theme="dark"]{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#232733;
+  --surface:#1a1d27;--surface2:#222738;
+  --border:#2a2e3d;--border2:#363b4d;--border3:#454b5f;
+  --text:#f0f2f5;--text2:#d1d5db;--text3:#8b92a5;--text4:#5a6178;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.2);
+  --shadow:0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:0 4px 6px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.4);
+  --shadow-xl:0 20px 40px rgba(0,0,0,.5);
+  --rafael-l:rgba(37,99,235,.12);--rafael-b:rgba(37,99,235,.2);
+  --tarik-l:rgba(5,150,105,.12);--tarik-b:rgba(5,150,105,.2);
+  --trk-l:rgba(220,38,38,.12);--trk-b:rgba(220,38,38,.2);
+  --bpo-l:rgba(124,58,237,.12);--bpo-b:rgba(124,58,237,.2);
+  --ok-l:rgba(22,163,74,.12);--ok-b:rgba(22,163,74,.2);
+  --pend-l:rgba(217,119,6,.12);--pend-b:rgba(217,119,6,.2);
+  --err-l:rgba(220,38,38,.12);--err-b:rgba(220,38,38,.2);
+  --inter-bg:rgba(255,122,0,.1);
+  --bradesco-bg:rgba(204,9,47,.1);
+  --santander-bg:rgba(236,0,0,.1);
+  --drive-l:rgba(234,88,12,.12);--omie-l:rgba(37,99,235,.12);
+  --banco-l:rgba(55,65,81,.2);--pipe-l:rgba(124,58,237,.12);
+}
+
+/* ── RESET ── */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--text);
+  font-size:14px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+  transition:background .3s var(--ease),color .3s var(--ease);
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+img{max-width:100%;display:block}
+::selection{background:var(--rafael);color:#fff}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* ── TYPOGRAPHY ── */
+h1{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+h2{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h3{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.4}
+h4{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.mono{font-family:'Inter',monospace;font-size:12px;letter-spacing:.02em}
+.uppercase{text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:700}
+
+/* ── FOCUS STYLES ── */
+:focus-visible{outline:2px solid var(--rafael);outline-offset:2px;border-radius:var(--r-sm)}
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible){outline:none}
+
+/* ── PRINT ── */
+@media print{
+  .header,.desktop-nav,.bottom-nav,.fab,.drawer,.drawer-overlay,.toast-container,.search-wrap,.header-actions,.icon-btn{display:none!important}
+  body{background:#fff;color:#000}
+  .main{max-width:100%;padding:0}
+  .card,.stat-card,.checklist-block,.conc-card,.day-card,.drive-panel,.tasks-panel,.conc-progress{
+    box-shadow:none;border:1px solid #ddd;break-inside:avoid
+  }
+}

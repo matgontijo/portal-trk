@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Grupo TRK</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--surface:#fff;--border:#e2e6ea;--border2:#ced4da;
+  --text:#1a1d21;--muted:#6c757d;
+  --rafael:#185FA5;--rafael-light:#E6F1FB;
+  --tarik:#0F6E56;--tarik-light:#E1F5EE;
+  --trk:#c0392b;--trk-light:#FDEDEC;
+  --bpo:#534AB7;--bpo-light:#EEEDFE;
+  --ok:#1a7f4b;--ok-light:#e6f7ee;
+  --pend:#b45309;--pend-light:#fef3e2;
+  --err:#c0392b;--err-light:#fdedec;
+  --inter-bg:#FFF3E0;--inter-c:#BF360C;
+  --bradesco-bg:#FCE4EC;--bradesco-c:#880E4F;
+  --santander-bg:#FFEBEE;--santander-c:#B71C1C;
+  --drive:#E65100;--drive-light:#FFF3E0;
+  --omie:#185FA5;--omie-light:#E6F1FB;
+  --pipe:#534AB7;--pipe-light:#EEEDFE;
+  --banco:#37474F;--banco-light:#ECEFF1;
+  --radius:10px;
+}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);font-size:14px}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.logo{font-size:18px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;flex-shrink:0}.logo span{color:var(--rafael)}
+.gsearch{flex:1;max-width:400px;display:flex;align-items:center;gap:8px;border:1px solid var(--border2);border-radius:20px;padding:6px 14px;background:var(--bg)}
+.gsearch input{flex:1;border:none;outline:none;font-size:13px;background:transparent;color:var(--text)}
+.gsearch input::placeholder{color:var(--muted)}
+
+/* NAV TABS */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;overflow-x:auto;position:sticky;top:52px;z-index:199}
+.nav::-webkit-scrollbar{height:3px}.nav::-webkit-scrollbar-thumb{background:var(--border2)}
+.ntab{padding:10px 14px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:color .15s}
+.ntab:hover{color:var(--text)}
+.ntab.on{color:var(--rafael);border-bottom-color:var(--rafael)}
+.ntab .badge{background:var(--border);color:var(--muted);font-size:10px;padding:1px 5px;border-radius:8px}
+
+/* LAYOUT ROTINAS */
+.rotinas-layout{display:flex;gap:16px;align-items:flex-start}
+.rot-main{flex:1;min-width:0}
+.rot-side{width:280px;flex-shrink:0}
+
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:20px}
+.tab-content{display:none}.tab-content.on{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.stat-n{font-size:22px;font-weight:700}.stat-l{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+
+/* FILTERS */
+.filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.filter-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap;min-width:70px}
+.pill{padding:4px 12px;border-radius:20px;border:1.5px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--muted);transition:all .15s;user-select:none;display:inline-flex;align-items:center;gap:4px}
+.pill:hover{background:var(--bg)}
+.pill .ck{width:12px;height:12px;border-radius:3px;border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.5}
+.pill.on .ck{opacity:1}.pill.on .ck::after{content:'';width:5px;height:5px;background:currentColor;border-radius:1px;display:block}
+.pill.p-trk.on{background:var(--trk-light);color:var(--trk);border-color:var(--trk)}
+.pill.p-bpo.on{background:var(--bpo-light);color:var(--bpo);border-color:var(--bpo)}
+.pill.p-rafael.on{background:var(--rafael-light);color:var(--rafael);border-color:var(--rafael)}
+.pill.p-tarik.on{background:var(--tarik-light);color:var(--tarik);border-color:var(--tarik)}
+.pill.p-bank.on{background:var(--banco-light);color:var(--banco);border-color:var(--banco)}
+.clear-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--muted);display:none;align-items:center;gap:4px}
+.clear-btn.show{display:inline-flex}.clear-btn:hover{border-color:var(--err);color:var(--err)}
+.active-summary{font-size:12px;color:var(--muted);margin-bottom:8px;min-height:16px}
+.filters-wrap{margin-bottom:16px}
+
+/* CARDS EMPRESAS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:12px;transition:all .15s}
+.card:hover{border-color:var(--border2);box-shadow:0 2px 5px rgba(0,0,0,.05)}
+.card.trk{border-left:3px solid var(--trk)}.card.bpo{border-left:3px solid var(--bpo)}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.av.trk{background:var(--trk-light);color:var(--trk)}.av.bpo{background:var(--bpo-light);color:var(--bpo)}
+.cm{flex:1;min-width:0}
+.cn{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cnpj{font-size:11px;color:var(--muted);font-family:monospace}
+.resp-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
+.resp-badge.rafael{background:var(--rafael-light);color:var(--rafael)}.resp-badge.tarik{background:var(--tarik-light);color:var(--tarik)}
+.right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.btag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:500;white-space:nowrap}
+.inter{background:var(--inter-bg);color:var(--inter-c)}.bradesco{background:var(--bradesco-bg);color:var(--bradesco-c)}.santander{background:var(--santander-bg);color:var(--santander-c)}
+.itag{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--muted)}
+.itag b{color:var(--text);font-weight:600}
+.gtag{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.gtag.trk{background:var(--trk-light);color:var(--trk)}.gtag.bpo{background:var(--bpo-light);color:var(--bpo)}
+.rcount{font-size:12px;color:var(--muted);margin-bottom:8px}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:20px 0 8px;display:flex;align-items:center;gap:8px}
+.sbadge{padding:3px 9px;border-radius:10px;font-size:12px;font-weight:600}
+.sbadge.trk{background:var(--trk-light);color:var(--trk)}.sbadge.bpo{background:var(--bpo-light);color:var(--bpo)}
+.scnt{font-size:11px;background:var(--border);color:var(--muted);padding:2px 7px;border-radius:10px}
+.none{text-align:center;padding:2.5rem;color:var(--muted);font-size:14px}
+
+/* TABELAS */
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.total td{font-weight:600;background:var(--bg)}
+.mono{font-family:monospace;font-size:12px}
+
+/* ROTINAS */
+.day-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+.day-title{font-size:20px;font-weight:700;color:var(--text)}
+.day-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.day-alert{display:inline-flex;align-items:center;gap:6px;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;margin-top:8px}
+.prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:12px}
+.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--rafael),var(--tarik));transition:width .4s}
+.prog-txt{font-size:12px;color:var(--muted);margin-top:5px}
+
+.checklist-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.cs-header{padding:11px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.cs-header:hover{background:var(--bg)}
+.cs-cat{display:flex;align-items:center;gap:8px}
+.cat-badge{padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.cat-drive{background:var(--drive-light);color:var(--drive)}
+.cat-omie{background:var(--omie-light);color:var(--omie)}
+.cat-banco{background:var(--banco-light);color:var(--banco)}
+.cat-pipe{background:var(--pipe-light);color:var(--pipe)}
+.cat-urgente{background:var(--err-light);color:var(--err);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.cs-body{padding:6px 16px 12px;display:none}
+.cs-body.open{display:block}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.check-item:last-child{border-bottom:none}
+.chk{width:18px;height:18px;border:2px solid var(--border2);border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.chk.checked{background:var(--ok);border-color:var(--ok)}
+.chk.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.chk-label{flex:1;font-size:13px;color:var(--text);cursor:pointer;transition:color .15s}
+.chk-label.checked{text-decoration:line-through;color:var(--muted)}
+.chk-obs{border:none;outline:none;font-size:12px;color:var(--muted);background:transparent;width:100%;font-family:inherit;border-top:1px solid var(--border);padding-top:4px;margin-top:4px;resize:none}
+
+/* DRIVE CHECKLIST */
+.drive-check{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.drive-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--drive);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.drive-path{width:100%;padding:6px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:monospace;outline:none;color:var(--text);margin-bottom:10px;background:var(--bg)}
+.drive-path:focus{border-color:var(--drive)}
+.drive-items{display:flex;flex-direction:column;gap:5px}
+.drive-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.drive-chk{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.drive-chk.on{background:var(--drive);border-color:var(--drive)}
+.drive-chk.on::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+
+/* TASKS */
+.tasks-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:sticky;top:110px}
+.tasks-header{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.tasks-add{display:flex;gap:6px;margin-bottom:10px}
+.tasks-add input{flex:1;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.tasks-add input:focus{border-color:var(--rafael)}
+.add-btn{padding:7px 12px;background:var(--rafael);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.add-btn:hover{opacity:.9}
+.task-filters{display:flex;gap:4px;margin-bottom:10px}
+.tf{padding:3px 9px;border-radius:12px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--muted)}
+.tf.on{background:var(--text);color:#fff;border-color:var(--text)}
+.task-meta-row{display:flex;gap:6px;margin-bottom:8px}
+.task-meta-row select,.task-meta-row input{flex:1;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;font-size:12px;outline:none;font-family:inherit}
+.task-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.task-item:last-child{border-bottom:none}
+.task-chk{width:16px;height:16px;border:1.5px solid var(--border2);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .15s}
+.task-chk.done{background:var(--ok);border-color:var(--ok)}
+.task-chk.done::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+.task-body{flex:1;min-width:0}
+.task-txt{font-size:13px;color:var(--text);word-break:break-word;transition:color .15s}
+.task-txt.done{text-decoration:line-through;color:var(--muted)}
+.task-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.task-badge{font-size:10px;padding:1px 6px;border-radius:8px;font-weight:500}
+.prio-alta{background:#FDEDEC;color:#c0392b}
+.prio-normal{background:var(--border);color:var(--muted)}
+.prio-baixa{background:#E8F8F3;color:#0F6E56}
+.task-prazo{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--border);color:var(--muted)}
+.task-prazo.venc{background:#FDEDEC;color:#c0392b;animation:pulse 1.5s infinite}
+.task-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.task-item:hover .task-del{opacity:1}
+.tasks-empty{text-align:center;padding:20px;color:var(--muted);font-size:13px}
+
+/* CONCILIAÇÃO */
+.conc-date-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.conc-date-nav button{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s}
+.conc-date-nav button:hover{background:var(--bg)}
+.conc-date-nav button.today{background:var(--rafael);color:#fff;border-color:var(--rafael)}
+#conc-date-lbl{font-size:14px;font-weight:600;min-width:200px;text-align:center}
+.conc-prog{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.conc-prog-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.conc-prog-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.conc-stats{display:flex;gap:12px;flex-wrap:wrap}
+.cstat{font-size:12px;display:flex;align-items:center;gap:4px}
+.cdot{width:8px;height:8px;border-radius:50%}
+.prog-bar2{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.prog-fill2{height:100%;border-radius:4px;transition:width .4s;background:linear-gradient(90deg,var(--rafael),var(--tarik))}
+.prog-txt2{font-size:12px;color:var(--muted);margin-top:5px;text-align:right}
+.conc-obs-geral{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
+.conc-obs-geral label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);display:block;margin-bottom:6px}
+.conc-obs-geral textarea{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:50px;outline:none;background:var(--bg)}
+.conc-obs-geral textarea:focus{border-color:var(--rafael);background:var(--surface)}
+.conc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden}
+.conc-card.ok{border-left:3px solid var(--ok)}.conc-card.pendente{border-left:3px solid var(--pend)}.conc-card.erro{border-left:3px solid var(--err)}.conc-card.vazio{border-left:3px solid var(--border2)}
+.conc-top{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.conc-info{flex:1;min-width:0}
+.conc-nome{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;align-items:center}
+.conc-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.saldo-input{width:120px;padding:5px 8px;border:1px solid var(--border2);border-radius:8px;font-size:12px;text-align:right;font-family:monospace;outline:none}
+.saldo-input:focus{border-color:var(--rafael)}
+.status-sel{padding:4px 9px;border-radius:8px;border:1px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--muted);outline:none}
+.status-sel.ok{background:var(--ok-light);color:var(--ok);border-color:var(--ok)}
+.status-sel.pendente{background:var(--pend-light);color:var(--pend);border-color:var(--pend)}
+.status-sel.erro{background:var(--err-light);color:var(--err);border-color:var(--err)}
+.tog{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;transition:transform .2s}
+.conc-card.open .tog{transform:rotate(180deg)}
+.conc-detail{display:none;padding:0 14px 12px;border-top:1px solid var(--border)}
+.conc-card.open .conc-detail{display:block}
+.dg2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.df{display:flex;flex-direction:column;gap:3px}
+.df label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.df textarea,.df input[type=text]{width:100%;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;outline:none;background:var(--bg)}
+.df textarea:focus,.df input[type=text]:focus{border-color:var(--rafael);background:var(--surface)}
+.df textarea{min-height:54px}
+.df-full{grid-column:1/-1}
+.saved{font-size:11px;color:var(--ok);margin-top:6px;opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.hist-toggle-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--muted);margin-bottom:14px}
+.hist-toggle-btn:hover{background:var(--bg)}
+.hist-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.hist-panel.open{display:block}
+.hist-item2{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;background:var(--bg);cursor:pointer;margin-bottom:5px}
+.hist-item2:hover{background:var(--border)}
+.hist-sts{display:flex;gap:6px}
+.hst{font-size:11px;padding:2px 7px;border-radius:8px}
+.hst.ok{background:var(--ok-light);color:var(--ok)}.hst.pend{background:var(--pend-light);color:var(--pend)}.hst.err{background:var(--err-light);color:var(--err)}
+
+/* MANDATOS */
+.mand-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:7px;display:flex;align-items:center;gap:12px}
+.mand-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.mand-dot.verde{background:var(--ok)}.mand-dot.amarelo{background:#f59e0b}.mand-dot.vermelho{background:var(--err);animation:pulse 1.5s infinite}
+.mand-info{flex:1;min-width:0}
+.mand-nome{font-size:13px;font-weight:500;margin-bottom:3px}
+.mand-det{font-size:12px;color:var(--muted)}
+.mand-badge{padding:3px 10px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.mand-badge.verde{background:var(--ok-light);color:var(--ok)}.mand-badge.amarelo{background:#fef3c7;color:#92400e}.mand-badge.vermelho{background:var(--err-light);color:var(--err)}
+.mand-alert{background:var(--err-light);border:1px solid var(--err);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--err);font-weight:500;display:none}
+.mand-alert.show{display:block}
+
+footer{text-align:center;padding:18px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:28px}
+@media(max-width:700px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .rotinas-layout{flex-direction:column}
+  .rot-side{width:100%;position:static}
+  .card{flex-direction:column;align-items:flex-start}
+  .right{width:100%;justify-content:flex-start}
+  .conc-right{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">G<span>TRK</span></div>
+  <div class="gsearch">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="gq" placeholder="Busca global..." oninput="globalSearch()">
+  </div>
+</header>
+
+<div class="nav" id="main-nav">
+  <div class="ntab on" onclick="switchTab('rotinas',this)">📋 Rotinas</div>
+  <div class="ntab" onclick="switchTab('conciliacao',this)">🔄 Conciliação BPO</div>
+  <div class="ntab" onclick="switchTab('empresas',this)">🏢 Empresas</div>
+  <div class="ntab" onclick="switchTab('bancos',this)">🏦 Contas Bancárias</div>
+  <div class="ntab" onclick="switchTab('honorarios',this)">🧾 Honorários</div>
+  <div class="ntab" onclick="switchTab('bpofi',this)">💰 BPO Financeiro</div>
+  <div class="ntab" onclick="switchTab('imoveis',this)">🏘 Imóveis</div>
+  <div class="ntab" onclick="switchTab('mandatos',this)">📅 Mandatos</div>
+</div>
+
+<div class="main">
+
+<!-- ===================== ABA ROTINAS ===================== -->
+<div id="tab-rotinas" class="tab-content on">
+<div class="rotinas-layout">
+<div class="rot-main">
+
+  <div class="day-header" id="day-header"></div>
+
+  <div class="drive-check" id="drive-check">
+    <div class="drive-title">📁 Checklist do Drive — pasta do dia</div>
+    <input class="drive-path" type="text" id="drive-path-input" placeholder="Ex: TRK Consultoria / 2026 / 05 - Maio / 27-05-2026" oninput="saveDriveData()">
+    <div class="drive-items" id="drive-items"></div>
+  </div>
+
+  <div id="rot-blocks"></div>
+
+</div>
+<div class="rot-side">
+  <div class="tasks-panel">
+    <div class="tasks-header">
+      <span>Minhas Tasks</span>
+      <span id="task-cnt" style="font-size:11px;background:var(--border);padding:2px 7px;border-radius:10px;color:var(--muted)">0</span>
+    </div>
+    <div class="task-meta-row">
+      <select id="task-prio"><option value="normal">Normal</option><option value="alta">Alta</option><option value="baixa">Baixa</option></select>
+      <input type="date" id="task-date">
+    </div>
+    <div class="task-meta-row">
+      <input type="text" id="task-cat" placeholder="Categoria (ex: Pipefy, Omie...)">
+    </div>
+    <div class="tasks-add">
+      <input type="text" id="task-input" placeholder="Nova task..." onkeydown="if(event.key==='Enter')addTask()">
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+    <div class="task-filters">
+      <span class="tf on" onclick="setTF('all',this)">Todas</span>
+      <span class="tf" onclick="setTF('pend',this)">Pendentes</span>
+      <span class="tf" onclick="setTF('done',this)">Feitas</span>
+      <span class="tf" onclick="setTF('alta',this)">Urgentes</span>
+    </div>
+    <div id="task-list"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ===================== ABA CONCILIAÇÃO ===================== -->
+<div id="tab-conciliacao" class="tab-content">
+  <div class="conc-date-nav">
+    <button onclick="concChangeDay(-1)">‹ Anterior</button>
+    <span id="conc-date-lbl"></span>
+    <button onclick="concChangeDay(1)">Próximo ›</button>
+    <button class="today" onclick="concGoToday()">Hoje</button>
+  </div>
+  <div class="conc-prog">
+    <div class="conc-prog-hdr">
+      <span class="conc-prog-title">Progresso do dia</span>
+      <div class="conc-stats">
+        <span class="cstat"><span class="cdot" style="background:var(--ok)"></span><span id="conc-ok">0</span> ok</span>
+        <span class="cstat"><span class="cdot" style="background:var(--pend)"></span><span id="conc-pend">0</span> pendentes</span>
+        <span class="cstat"><span class="cdot" style="background:var(--err)"></span><span id="conc-err">0</span> erros</span>
+        <span class="cstat"><span class="cdot" style="background:var(--border2)"></span><span id="conc-vazio">0</span> não iniciadas</span>
+      </div>
+    </div>
+    <div class="prog-bar2"><div class="prog-fill2" id="conc-fill" style="width:0%"></div></div>
+    <div class="prog-txt2" id="conc-txt"></div>
+  </div>
+  <div class="conc-obs-geral">
+    <label>📝 Observações gerais do dia</label>
+    <textarea id="conc-obs-input" placeholder="Ocorrências, pendências, lembretes..." oninput="saveConcObs()"></textarea>
+  </div>
+  <button class="hist-toggle-btn" onclick="toggleConcHist()">📅 Histórico de dias anteriores <span id="conc-hist-arrow">▼</span></button>
+  <div class="hist-panel" id="conc-hist-panel">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Dias registrados</div>
+    <div id="conc-hist-list"></div>
+  </div>
+  <div class="filter-row" style="margin-bottom:12px">
+    <span class="pill p-rafael on" id="cf-all" onclick="setCF('all')"><span class="ck"></span>Todas</span>
+    <span class="pill p-rafael" id="cf-rafael" onclick="setCF('rafael')"><span class="ck"></span>Rafael</span>
+    <span class="pill p-tarik" id="cf-tarik" onclick="setCF('tarik')"><span class="ck"></span>Tárik</span>
+    <span class="pill p-bank" id="cf-ok" onclick="setCF('ok')"><span class="ck"></span>✓ OK</span>
+    <span class="pill" id="cf-pend" onclick="setCF('pendente')" style="--pill-on:#b45309"><span class="ck"></span>⏳ Pendente</span>
+    <span class="pill" id="cf-err" onclick="setCF('erro')" style="--pill-on:#c0392b"><span class="ck"></span>⚠ Erro</span>
+  </div>
+  <div class="rcount" id="conc-rcount"></div>
+  <div id="conc-cards"></div>
+</div>
+
+<!-- ===================== ABA EMPRESAS ===================== -->
+<div id="tab-empresas" class="tab-content">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="se-total">—</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n" id="se-trk" style="color:var(--trk)">—</div><div class="stat-l">Grupo TRK</div></div>
+    <div class="stat"><div class="stat-n" id="se-bpo" style="color:var(--bpo)">—</div><div class="stat-l">BPO</div></div>
+    <div class="stat"><div class="stat-n" id="se-rafael" style="color:var(--rafael)">—</div><div class="stat-l">Rafael</div></div>
+  </div>
+  <div class="filters-wrap">
+    <div class="filter-row"><span class="filter-label">Grupo</span>
+      <span class="pill p-trk" onclick="toggleEF('trk',this)"><span class="ck"></span>Grupo TRK</span>
+      <span class="pill p-bpo" onclick="toggleEF('bpo',this)"><span class="ck"></span>BPO</span>
+    </div>
+    <div class="filter-row"><span class="filter-label">Responsável</span>
+      <span class="pill p-rafael" onclick="toggleEF('rafael',this)"><span class="ck"></span>Rafael</span>
+      <span class="pill p-tarik" onclick="toggleEF('tarik',this)"><span class="ck"></span>Tárik</span>
+    </div>
+    <div class="filter-row"><span class="filter-label">Banco</span>
+      <span class="pill p-bank" onclick="toggleEF('inter',this)"><span class="ck"></span>Inter</span>
+      <span class="pill p-bank" onclick="toggleEF('santander',this)"><span class="ck"></span>Santander</span>
+      <span class="pill p-bank" onclick="toggleEF('bradesco',this)"><span class="ck"></span>Bradesco</span>
+      <span class="clear-btn" id="ef-clear" onclick="clearEF()">✕ Limpar</span>
+    </div>
+    <div class="active-summary" id="ef-summary"></div>
+  </div>
+  <div class="rcount" id="se-rcount"></div>
+  <div id="se-cards"></div>
+</div>
+
+<!-- ===================== ABA CONTAS BANCÁRIAS ===================== -->
+<div id="tab-bancos" class="tab-content">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="sb-total">—</div><div class="stat-l">Total contas</div></div>
+    <div class="stat"><div class="stat-n" id="sb-inter" style="color:var(--inter-c)">—</div><div class="stat-l">Inter</div></div>
+    <div class="stat"><div class="stat-n" id="sb-sant" style="color:var(--santander-c)">—</div><div class="stat-l">Santander</div></div>
+    <div class="stat"><div class="stat-n" id="sb-brad" style="color:var(--bradesco-c)">—</div><div class="stat-l">Bradesco</div></div>
+  </div>
+  <div class="filters-wrap">
+    <div class="filter-row"><span class="filter-label">Grupo</span>
+      <span class="pill p-trk" onclick="toggleBF('trk',this)"><span class="ck"></span>Grupo TRK</span>
+      <span class="pill p-bpo" onclick="toggleBF('bpo',this)"><span class="ck"></span>BPO</span>
+    </div>
+    <div class="filter-row"><span class="filter-label">Responsável</span>
+      <span class="pill p-rafael" onclick="toggleBF('rafael',this)"><span class="ck"></span>Rafael</span>
+      <span class="pill p-tarik" onclick="toggleBF('tarik',this)"><span class="ck"></span>Tárik</span>
+    </div>
+    <div class="filter-row"><span class="filter-label">Banco</span>
+      <span class="pill p-bank" onclick="toggleBF('inter',this)"><span class="ck"></span>Inter</span>
+      <span class="pill p-bank" onclick="toggleBF('santander',this)"><span class="ck"></span>Santander</span>
+      <span class="pill p-bank" onclick="toggleBF('bradesco',this)"><span class="ck"></span>Bradesco</span>
+      <span class="clear-btn" id="bf-clear" onclick="clearBF()">✕ Limpar</span>
+    </div>
+    <div class="active-summary" id="bf-summary"></div>
+  </div>
+  <div class="rcount" id="sb-rcount"></div>
+  <div id="sb-cards"></div>
+</div>
+
+<!-- ===================== ABA HONORÁRIOS ===================== -->
+<div id="tab-honorarios" class="tab-content">
+  <div id="hon-content"></div>
+</div>
+
+<!-- ===================== ABA BPO FINANCEIRO ===================== -->
+<div id="tab-bpofi" class="tab-content">
+  <div id="bpofi-content"></div>
+</div>
+
+<!-- ===================== ABA IMÓVEIS ===================== -->
+<div id="tab-imoveis" class="tab-content">
+  <div id="imoveis-content"></div>
+</div>
+
+<!-- ===================== ABA MANDATOS ===================== -->
+<div id="tab-mandatos" class="tab-content">
+  <div class="mand-alert" id="mand-alert"></div>
+  <div id="mand-list"></div>
+</div>
+
+</div><!-- /main -->
+<footer>Portal Grupo TRK — Dados salvos localmente · Uso interno</footer>
+
+<script>
+// ============================================================
+// DADOS
+// ============================================================
+const TODAS_EMPRESAS = [
+  // GRUPO TRK
+  {id:"cmf",      nome:"CMF Consultoria Imobiliária LTDA",                        cnpj:"59.954.067/0001-08", resp:"tarik",  grupo:"trk", banco:"Santander",ag:"0082",   conta:"13007832-8"},
+  {id:"rr",       nome:"RR Participações LTDA",                                   cnpj:"43.363.892/0001-06", resp:"rafael", grupo:"trk", banco:"Inter",    ag:"00019",  conta:"18269393-7"},
+  {id:"tarifa",   nome:"Tarifa Participações LTDA",                               cnpj:"43.361.973/0001-69", resp:"tarik",  grupo:"trk", banco:"Santander",ag:"0082",   conta:"13007833-5"},
+  {id:"trkalug",  nome:"TRK Administradora de Imóveis LTDA (Aluguel)",            cnpj:"22.414.542/0001-43", resp:"rafael", grupo:"trk", banco:"Santander",ag:"3067",   conta:"13002585-0"},
+  {id:"trkempr",  nome:"TRK Administradora de Imóveis LTDA (Empresa)",            cnpj:"22.414.542/0001-43", resp:"rafael", grupo:"trk", banco:"Inter",    ag:"3067",   conta:"13002586-7"},
+  {id:"trkcons",  nome:"TRK Consultoria Imobiliária LTDA",                        cnpj:"22.414.516/0001-15", resp:"rafael", grupo:"trk", banco:"Santander",ag:"3067",   conta:"13002587-4"},
+  // BPO
+  {id:"acao",     nome:"Ação Consultoria e Empreendimentos Imobiliários Ltda",    cnpj:"02.716.116/0001-57", resp:"rafael", grupo:"bpo", banco:"Inter",    ag:"2001-9", conta:"25035224-9"},
+  {id:"ativus",   nome:"Ativus Participações S/A",                                cnpj:"15.017.538/0001-86", resp:"rafael", grupo:"bpo", banco:"Bradesco", ag:"2837",   conta:"1290-9"},
+  {id:"audax",    nome:"Audax Participações LTDA",                                cnpj:"58.050.747/0001-34", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007634-0"},
+  {id:"autor",    nome:"Autor Participações S/A",                                 cnpj:"40.358.115/0001-77", resp:"rafael", grupo:"bpo", banco:"Inter",    ag:"2001-9", conta:"17814455-0"},
+  {id:"bird",     nome:"Bird Partners LTDA",                                      cnpj:"58.266.791/0001-86", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007627-8"},
+  {id:"eleven",   nome:"Eleven & One Partners LTDA",                              cnpj:"61.037.183/0001-04", resp:"tarik",  grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007946-0"},
+  {id:"esfera",   nome:"Esfera Arena e Negócios Spe LTDA",                        cnpj:"43.557.445/0001-80", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007438-6"},
+  {id:"gibraltar",nome:"Gibraltar Investimentos Imobiliários Part. S/A",          cnpj:"15.053.780/0001-05", resp:"tarik",  grupo:"bpo", banco:"Bradesco", ag:"7980",   conta:"0004869-0"},
+  {id:"golf",     nome:"Golf Participações e Investimentos Imobiliário LTDA",     cnpj:"32.129.155/0001-19", resp:"rafael", grupo:"bpo", banco:"Inter",    ag:"0001",   conta:"26406840-8"},
+  {id:"kfinserv", nome:"K Finserv Serviços Financeiros LTDA",                     cnpj:"60.503.068/0001-15", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007876-8"},
+  {id:"kconsult", nome:"K Consultoria e Marketing Imobiliário LTDA",              cnpj:"50.585.739/0001-80", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13006838-1"},
+  {id:"malaga",   nome:"Malaga Participação LTDA",                                cnpj:"55.370.214/0001-41", resp:"tarik",  grupo:"bpo", banco:"Santander",ag:"0082",   conta:"13007309-3"},
+  {id:"marazul",  nome:"Mar Azul Empreendimentos Imobiliários LTDA",              cnpj:"42.696.860/0001-51", resp:"tarik",  grupo:"bpo", banco:"Santander",ag:"4515",   conta:"13006736-3"},
+  {id:"quintas",  nome:"Quintas Empreendimentos e Participações S/A",             cnpj:"14.796.720/0001-10", resp:"tarik",  grupo:"bpo", banco:"Inter",    ag:"0019",   conta:"235561754"},
+  {id:"resgard",  nome:"Residencial Garden Empreendimentos Imobiliários LTDA",    cnpj:"43.301.143/0001-46", resp:"rafael", grupo:"bpo", banco:"Santander",ag:"0082",   conta:"130063355"},
+  {id:"roi",      nome:"ROI Participações e Investimentos S/A",                   cnpj:"18.942.643/0001-10", resp:"rafael", grupo:"bpo", banco:"Inter",    ag:"0001-9", conta:"239352041"},
+  {id:"school",   nome:"School Participações Investimentos Imobiliário LTDA",     cnpj:"31.482.587/0001-46", resp:"rafael", grupo:"bpo", banco:"Inter",    ag:"0001",   conta:"25299377-2"},
+];
+
+const BPO_EMPRESAS = TODAS_EMPRESAS.filter(e=>e.grupo==="bpo");
+
+const HONORARIOS = [
+  {empresa:"TRK Administradora de Imóveis LTDA",contab:"Foxcon",hon:1897,alug:80,total:1977,obs:""},
+  {empresa:"TRK Consultoria Imobiliária LTDA",contab:"Foxcon",hon:1264,alug:80,total:1344,obs:""},
+  {empresa:"Esfera Arena e Negócios Spe LTDA",contab:"Foxcon",hon:1067,alug:0,total:1067,obs:""},
+  {empresa:"K Consultoria e Marketing Imob. LTDA",contab:"Foxcon",hon:979,alug:0,total:979,obs:""},
+  {empresa:"Residencial Garden",contab:"ADN",hon:1400,alug:0,total:1400,obs:""},
+  {empresa:"Camefe Adm. e Inv. Imob. Ltda",contab:"JR",hon:605,alug:60,total:665,obs:""},
+  {empresa:"Ativus Participações S/A",contab:"JR",hon:305,alug:65,total:370,obs:""},
+  {empresa:"Autor Participações S.A.",contab:"JR",hon:305,alug:60,total:365,obs:""},
+  {empresa:"Golf Participações",contab:"JR",hon:305,alug:60,total:365,obs:""},
+  {empresa:"Quintas Empreendimentos",contab:"JR",hon:305,alug:60,total:365,obs:""},
+  {empresa:"RR Participações LTDA",contab:"JR",hon:305,alug:60,total:365,obs:""},
+  {empresa:"Tanger Empreendimentos",contab:"JR",hon:305,alug:60,total:365,obs:""},
+  {empresa:"Ação Consultoria",contab:"JR",hon:200,alug:0,total:200,obs:"Mês com movimentação 300"},
+  {empresa:"Malaga Participação",contab:"JR",hon:140,alug:60,total:200,obs:""},
+  {empresa:"Tarifa Participações",contab:"JR",hon:0,alug:0,total:0,obs:"Pagamento junto com a Camefe"},
+];
+
+const OMIE_LICENCAS = [
+  {empresa:"TRK Consultoria Imobiliária LTDA",valor:689},
+  {empresa:"TRK Administradora de Imóveis LTDA",valor:589},
+  {empresa:"Esfera Arena e Negócios Spe LTDA",valor:559},
+  {empresa:"Tarifa Participações LTDA",valor:486.85},
+  {empresa:"K Consultoria e Marketing Imob. LTDA",valor:476.56},
+  {empresa:"ROI Participações e Inv. S.A.",valor:329},
+  {empresa:"RR Participações LTDA",valor:278.10},
+  {empresa:"Barbosa",valor:99},{empresa:"Bird Partners",valor:99},{empresa:"CMF",valor:99},{empresa:"K Finserv",valor:99},
+];
+
+const BPO_FIN = [
+  {empresa:"Esfera Arena",valor:1500,praf:0.15,vraf:225,ptarik:0.35,vtarik:525,receita:750},
+  {empresa:"Camefe",valor:1000,praf:0,vraf:0,ptarik:0.1,vtarik:100,receita:900},
+  {empresa:"Costa dos Corais",valor:1000,praf:0.105,vraf:105,ptarik:0.245,vtarik:245,receita:650},
+  {empresa:"Golf",valor:1000,praf:0.05,vraf:50,ptarik:0.45,vtarik:450,receita:500},
+  {empresa:"Residencial Garden",valor:1000,praf:0.1,vraf:100,ptarik:0.23,vtarik:230,receita:670},
+  {empresa:"ROI",valor:1000,praf:0.0599,vraf:59.9,ptarik:0.0951,vtarik:95.1,receita:845},
+  {empresa:"School",valor:1000,praf:0.15,vraf:150,ptarik:0.35,vtarik:350,receita:500},
+  {empresa:"Tanger",valor:1000,praf:0,vraf:0,ptarik:0.6,vtarik:600,receita:400},
+];
+
+const IMOVEIS = [
+  {nome:"Fazenda Mesquita",nirf:"7.426.275-0",prop:"60% Quintas / 40% Voxel",mat:"8003",apelido:"Triangulo"},
+  {nome:"Quinhão 01 - Faz. Pindaibal",nirf:"1.089.308-3",prop:"Quintas",mat:"28239",apelido:"Faixa"},
+  {nome:"Imóvel 58",nirf:"—",prop:"Quintas",mat:"833",apelido:"Imóvel 58"},
+  {nome:"Santa Maria",nirf:"—",prop:"Ativus e Gibraltar",mat:"43868",apelido:"Santa Maria"},
+  {nome:"Gleba Faz. Barreiros A",nirf:"5.626.757-6",prop:"Golf",mat:"26223",apelido:"Golf"},
+  {nome:"Gleba Faz. Barreiros B",nirf:"6.397.401-0",prop:"Golf",mat:"25978",apelido:"Golf"},
+  {nome:"Fazenda Mesquita Gleba A",nirf:"4.631.656-6",prop:"ROI",mat:"7814",apelido:"Maracujá"},
+  {nome:"Gleba Faz. Barreiros C",nirf:"3.361.074-6",prop:"School",mat:"25982",apelido:"Escola"},
+  {nome:"Gleba Faz. Barreiros D",nirf:"9.250.059-5",prop:"Tanger",mat:"15774",apelido:"20.000 DF 140"},
+  {nome:"Bird (imóvel 58)",nirf:"—",prop:"Bird",mat:"833",apelido:"58"},
+];
+
+const MANDATOS = [
+  {empresa:"Ativus Participações S/A",diretores:"Rafael e Marco Antonio",ata:"11/04/2024",venc:"04/04/2027"},
+  {empresa:"Autor Participações S.A.",diretores:"Marco Antônio e Vera",ata:"23/11/2023",venc:"23/11/2026"},
+  {empresa:"Gibraltar Inv. Imob. Part. S/A",diretores:"Carol e Tárik",ata:"19/12/2023",venc:"19/12/2026"},
+  {empresa:"Quintas Empreendimentos e Part. S/A",diretores:"Rafael e Tárik",ata:"31/10/2024",venc:"30/10/2027"},
+  {empresa:"ROI Participações e Inv. S.A.",diretores:"Rafael e Georges",ata:"11/03/2024",venc:"11/03/2027"},
+];
+
+const ROTINAS = {
+  0:{ label:"Domingo", alertas:[], blocos:[] },
+  1:{ label:"Segunda-feira", alertas:[], blocos:[
+    {cat:"banco",label:"Manhã — Extratos",itens:["Tirar extrato Inter e conciliar no Omie","Tirar extrato Santander e conciliar no Omie","Tirar extrato Bradesco e conciliar no Omie"]},
+    {cat:"omie",label:"Preparação Rafael (BPO)",itens:["Coletar NFs das empresas do Rafael","Coletar boletos das empresas do Rafael","Lançar pagamentos no Omie empresa por empresa","Gerar arquivo de remessa"]},
+    {cat:"drive",label:"Drive — Pasta do dia",itens:["Criar pasta: Empresa → 2026 → mês → data","Subir NFs no Drive","Subir boletos no Drive","Subir arquivo de remessa no Drive"]},
+    {cat:"banco",label:"Banco",itens:["Enviar remessa ao banco","Confirmar recebimento da remessa pelo banco"]},
+  ]},
+  2:{ label:"Terça-feira", alertas:["💳 Pagamentos das empresas do Rafael executados hoje"], blocos:[
+    {cat:"banco",label:"Manhã — Extratos",itens:["Tirar extrato Inter e conciliar no Omie","Tirar extrato Santander e conciliar no Omie","Tirar extrato Bradesco e conciliar no Omie"]},
+    {cat:"omie",label:"Confirmação Rafael",itens:["Confirmar execução dos pagamentos no banco","Baixar comprovantes bancários","Confirmar liquidação no Omie"]},
+    {cat:"drive",label:"Drive",itens:["Subir comprovantes no Drive"]},
+  ]},
+  3:{ label:"Quarta-feira", alertas:["⚠️ DEADLINE: Lançar pipes do Vila Raio no Pipefy até fim do dia"], blocos:[
+    {cat:"banco",label:"Manhã — Extratos",itens:["Tirar extrato Inter e conciliar no Omie","Tirar extrato Santander e conciliar no Omie","Tirar extrato Bradesco e conciliar no Omie"]},
+    {cat:"urgente",label:"⚠️ Deadline Vila Raio",itens:["Lançar todos os pipes do Vila Raio no Pipefy","Revisar aprovações pendentes no Pipefy"]},
+    {cat:"omie",label:"Preparação Tárik (BPO)",itens:["Coletar NFs das empresas do Tárik","Coletar boletos das empresas do Tárik","Lançar pagamentos no Omie empresa por empresa","Gerar arquivo de remessa"]},
+    {cat:"drive",label:"Drive — Pasta do dia",itens:["Criar pasta: Empresa → 2026 → mês → data","Subir NFs no Drive","Subir boletos no Drive","Subir arquivo de remessa no Drive"]},
+    {cat:"banco",label:"Banco",itens:["Enviar remessa ao banco","Confirmar recebimento da remessa"]},
+  ]},
+  4:{ label:"Quinta-feira", alertas:[], blocos:[
+    {cat:"banco",label:"Manhã — Extratos",itens:["Tirar extrato Inter e conciliar no Omie","Tirar extrato Santander e conciliar no Omie","Tirar extrato Bradesco e conciliar no Omie"]},
+    {cat:"omie",label:"Confirmação Tárik",itens:["Confirmar execução dos pagamentos Tárik no banco","Baixar comprovantes Tárik","Confirmar liquidação no Omie"]},
+    {cat:"drive",label:"Drive",itens:["Subir comprovantes Tárik no Drive"]},
+    {cat:"pipe",label:"Pipefy — Vila Raio",itens:["Preparar pagamentos Vila Raio no Siegen","Revisar pipes aprovados no Pipefy"]},
+  ]},
+  5:{ label:"Sexta-feira", alertas:["💸 Pagamento Vila Raio executado hoje no Siegen"], blocos:[
+    {cat:"banco",label:"Manhã — Extratos",itens:["Tirar extrato Inter e conciliar no Omie","Tirar extrato Santander e conciliar no Omie","Tirar extrato Bradesco e conciliar no Omie"]},
+    {cat:"pipe",label:"Vila Raio — Siegen",itens:["Executar pagamentos no Siegen","Baixar comprovantes Vila Raio","Confirmar liquidação no Siegen"]},
+    {cat:"drive",label:"Drive",itens:["Subir comprovantes Vila Raio no Drive"]},
+  ]},
+  6:{ label:"Sábado", alertas:[], blocos:[] },
+};
+
+const DRIVE_DOCS = ["NF(s)","Boleto(s)","Remessa","Comprovante(s)"];
+
+// ============================================================
+// UTILS
+// ============================================================
+function ini(n){const w=n.split(" ").filter(x=>x.length>2);return((w[0]||"")[0]+(w[1]||"")[0]).toUpperCase()}
+function bClass(b){const l=(b||"").toLowerCase();return l.includes("inter")?"inter":l.includes("bradesco")?"bradesco":"santander"}
+function toKey(d){return d.toISOString().split("T")[0]}
+function fmtDate(d){
+  const dias=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+  const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  return`${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+}
+function fmtShort(d){
+  const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  const meses=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  return`${dias[d.getDay()]} ${d.getDate()}/${meses[d.getMonth()]}/${d.getFullYear()}`;
+}
+function diffDays(venc){
+  const [dd,mm,yy]=venc.split("/").map(Number);
+  return Math.round((new Date(yy,mm-1,dd)-new Date(2026,4,27))/86400000);
+}
+function fmtBRL(n){return"R$ "+parseFloat(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(id,el){
+  document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("on"));
+  document.querySelectorAll(".ntab").forEach(t=>t.classList.remove("on"));
+  document.getElementById("tab-"+id).classList.add("on");
+  el.classList.add("on");
+  if(id==="honorarios") renderHon();
+  if(id==="bpofi") renderBpoFi();
+  if(id==="imoveis") renderImoveis();
+  if(id==="mandatos") renderMandatos();
+  if(id==="empresas") renderEmpresas();
+  if(id==="bancos") renderBancos();
+}
+
+// ============================================================
+// ROTINAS
+// ============================================================
+function rotKey(dateKey,block,idx){return`rot_${dateKey}_${block}_${idx}`}
+function driveKey(dateKey){return`drive_${dateKey}`}
+
+function renderRotinas(){
+  const today=new Date();
+  const dow=today.getDay();
+  const dateKey=toKey(today);
+  const rot=ROTINAS[dow];
+
+  const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  let alertHTML="";
+  rot.alertas.forEach(a=>{alertHTML+=`<div class="day-alert">${a}</div>`});
+
+  // calcular progresso
+  let total=0,done=0;
+  rot.blocos.forEach((b,bi)=>b.itens.forEach((_,ii)=>{total++;if(localStorage.getItem(rotKey(dateKey,bi,ii))==="1")done++}));
+  const pct=total?Math.round(done/total*100):0;
+
+  document.getElementById("day-header").innerHTML=`
+    <div class="day-title">${rot.label} — ${today.getDate()} de ${meses[today.getMonth()]}</div>
+    <div class="day-sub">Hoje, ${today.toLocaleDateString("pt-BR")}</div>
+    ${alertHTML}
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-txt">${done} de ${total} tarefas concluídas — ${pct}%</div>
+  `;
+
+  // drive
+  const driveData=JSON.parse(localStorage.getItem(driveKey(dateKey))||"{}");
+  document.getElementById("drive-path-input").value=driveData.path||"";
+  document.getElementById("drive-items").innerHTML=DRIVE_DOCS.map((doc,i)=>`
+    <div class="drive-item">
+      <div class="drive-chk${driveData["doc"+i]?" on":""}" onclick="toggleDriveDoc(${i},'${dateKey}')"></div>
+      <span style="font-size:13px;${driveData["doc"+i]?"text-decoration:line-through;color:var(--muted)":""}">${doc}</span>
+    </div>`).join("");
+
+  if(!rot.blocos.length){
+    document.getElementById("rot-blocks").innerHTML=`<div class="none" style="padding:2rem">Sem rotinas para hoje 🎉</div>`;return;
+  }
+
+  document.getElementById("rot-blocks").innerHTML=rot.blocos.map((bloco,bi)=>{
+    const allDone=bloco.itens.every((_,ii)=>localStorage.getItem(rotKey(dateKey,bi,ii))==="1");
+    return`<div class="checklist-section">
+      <div class="cs-header" onclick="toggleCS('cs-${bi}')">
+        <div class="cs-cat">
+          <span class="cat-badge cat-${bloco.cat}">${bloco.cat.toUpperCase()}</span>
+          <span style="font-size:13px;font-weight:500;color:var(--text)">${bloco.label}</span>
+          ${allDone?`<span style="font-size:11px;color:var(--ok);font-weight:600">✓ Concluído</span>`:""}
+        </div>
+        <span style="color:var(--muted);font-size:18px" id="arr-cs-${bi}">▼</span>
+      </div>
+      <div class="cs-body open" id="cs-${bi}">
+        ${bloco.itens.map((item,ii)=>{
+          const ck=localStorage.getItem(rotKey(dateKey,bi,ii))==="1";
+          return`<div class="check-item">
+            <div class="chk${ck?" checked":""}" onclick="toggleRotItem(${bi},${ii},'${dateKey}')"></div>
+            <div style="flex:1">
+              <div class="chk-label${ck?" checked":""}" onclick="toggleRotItem(${bi},${ii},'${dateKey}')">${item}</div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleCS(id){
+  const el=document.getElementById(id);
+  const bi=id.replace("cs-","");
+  const arr=document.getElementById("arr-cs-"+bi);
+  el.classList.toggle("open");
+  arr.textContent=el.classList.contains("open")?"▼":"▶";
+}
+
+function toggleRotItem(bi,ii,dateKey){
+  const k=rotKey(dateKey,bi,ii);
+  localStorage.setItem(k,localStorage.getItem(k)==="1"?"0":"1");
+  renderRotinas();
+}
+
+function saveDriveData(){
+  const dateKey=toKey(new Date());
+  const d=JSON.parse(localStorage.getItem(driveKey(dateKey))||"{}");
+  d.path=document.getElementById("drive-path-input").value;
+  localStorage.setItem(driveKey(dateKey),JSON.stringify(d));
+}
+
+function toggleDriveDoc(i,dateKey){
+  const d=JSON.parse(localStorage.getItem(driveKey(dateKey))||"{}");
+  d["doc"+i]=!d["doc"+i];
+  localStorage.setItem(driveKey(dateKey),JSON.stringify(d));
+  renderRotinas();
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+let taskFilt="all";
+function loadTasks(){try{return JSON.parse(localStorage.getItem("gtrk_tasks")||"[]")}catch(e){return[]}}
+function saveTasks(t){localStorage.setItem("gtrk_tasks",JSON.stringify(t))}
+
+function addTask(){
+  const inp=document.getElementById("task-input");
+  const txt=inp.value.trim();
+  if(!txt) return;
+  const tasks=loadTasks();
+  tasks.unshift({id:Date.now(),txt,prio:document.getElementById("task-prio").value,cat:document.getElementById("task-cat").value.trim(),prazo:document.getElementById("task-date").value,done:false});
+  saveTasks(tasks);
+  inp.value="";
+  renderTasks();
+}
+
+function toggleTask(id){
+  const tasks=loadTasks();
+  const t=tasks.find(t=>t.id===id);
+  if(t) t.done=!t.done;
+  saveTasks(tasks);renderTasks();
+}
+
+function delTask(id){
+  saveTasks(loadTasks().filter(t=>t.id!==id));renderTasks();
+}
+
+function setTF(f,el){taskFilt=f;document.querySelectorAll(".tf").forEach(t=>t.classList.remove("on"));el.classList.add("on");renderTasks()}
+
+function renderTasks(){
+  let tasks=loadTasks();
+  if(taskFilt==="pend") tasks=tasks.filter(t=>!t.done);
+  else if(taskFilt==="done") tasks=tasks.filter(t=>t.done);
+  else if(taskFilt==="alta") tasks=tasks.filter(t=>t.prio==="alta"&&!t.done);
+  document.getElementById("task-cnt").textContent=loadTasks().filter(t=>!t.done).length;
+  if(!tasks.length){document.getElementById("task-list").innerHTML=`<div class="tasks-empty">Nenhuma task aqui</div>`;return;}
+  document.getElementById("task-list").innerHTML=tasks.map(t=>{
+    const hoje=new Date().toISOString().split("T")[0];
+    const venc=t.prazo&&t.prazo<hoje;
+    return`<div class="task-item">
+      <div class="task-chk${t.done?" done":""}" onclick="toggleTask(${t.id})"></div>
+      <div class="task-body">
+        <div class="task-txt${t.done?" done":""}">${t.txt}</div>
+        <div class="task-badges">
+          <span class="task-badge prio-${t.prio}">${t.prio.charAt(0).toUpperCase()+t.prio.slice(1)}</span>
+          ${t.cat?`<span class="task-badge" style="background:var(--border);color:var(--muted)">${t.cat}</span>`:""}
+          ${t.prazo?`<span class="task-prazo${venc?" venc":""}">${venc?"⚠ Venceu":"📅"} ${t.prazo.split("-").reverse().join("/")}</span>`:""}
+        </div>
+      </div>
+      <button class="task-del" onclick="delTask(${t.id})">✕</button>
+    </div>`;
+  }).join("");
+}
+
+// ============================================================
+// CONCILIAÇÃO
+// ============================================================
+let concDate=new Date();concDate.setHours(0,0,0,0);
+let concFilt="all";
+let openConc=new Set();
+
+function concKey(dateKey){return`conc_bpo_${dateKey}`}
+function concObsKey(dateKey){return`conc_obs_${dateKey}`}
+function loadConc(dateKey){try{return JSON.parse(localStorage.getItem(concKey(dateKey)))||{}}catch(e){return{}}}
+function saveConc(dateKey,data){localStorage.setItem(concKey(dateKey),JSON.stringify(data))}
+function saveConcObs(){localStorage.setItem(concObsKey(toKey(concDate)),document.getElementById("conc-obs-input").value)}
+
+function concChangeDay(n){concDate.setDate(concDate.getDate()+n);openConc.clear();renderConc()}
+function concGoToday(){concDate=new Date();concDate.setHours(0,0,0,0);openConc.clear();renderConc()}
+
+function setCF(f){
+  concFilt=f;
+  ["all","rafael","tarik","ok","pend","err"].forEach(k=>{
+    const el=document.getElementById("cf-"+k);
+    if(el) el.classList.toggle("on",k===f);
+  });
+  renderConc();
+}
+
+function toggleConcHist(){
+  const p=document.getElementById("conc-hist-panel");
+  const a=document.getElementById("conc-hist-arrow");
+  p.classList.toggle("open");
+  a.textContent=p.classList.contains("open")?"▲":"▼";
+  if(p.classList.contains("open")) renderConcHist();
+}
+
+function renderConcHist(){
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith("conc_bpo_")).map(k=>k.replace("conc_bpo_","")).sort().reverse().slice(0,20);
+  const el=document.getElementById("conc-hist-list");
+  if(!keys.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">Nenhum registro ainda.</div>';return;}
+  el.innerHTML=keys.map(k=>{
+    const d=loadConc(k);
+    const ok=Object.values(d).filter(x=>x.status==="ok").length;
+    const pend=Object.values(d).filter(x=>x.status==="pendente").length;
+    const err=Object.values(d).filter(x=>x.status==="erro").length;
+    const dt=new Date(k+"T12:00:00");
+    return`<div class="hist-item2" onclick="concGoDate('${k}')">
+      <span style="font-size:13px;font-weight:500">${fmtShort(dt)}</span>
+      <div class="hist-sts">
+        ${ok?`<span class="hst ok">✓${ok}</span>`:""}
+        ${pend?`<span class="hst pend">⏳${pend}</span>`:""}
+        ${err?`<span class="hst err">⚠${err}</span>`:""}
+        ${!ok&&!pend&&!err?`<span class="hst">sem reg.</span>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function concGoDate(k){
+  concDate=new Date(k+"T12:00:00");concDate.setHours(0,0,0,0);
+  openConc.clear();
+  document.getElementById("conc-hist-panel").classList.remove("open");
+  document.getElementById("conc-hist-arrow").textContent="▼";
+  renderConc();
+}
+
+function onConcStatus(id,val,dateKey){
+  const d=loadConc(dateKey);if(!d[id])d[id]={};d[id].status=val;saveConc(dateKey,d);renderConc();
+}
+function onConcSaldo(id,val,dateKey){
+  const d=loadConc(dateKey);if(!d[id])d[id]={};d[id].saldo=val;saveConc(dateKey,d);showConcSaved(id);
+}
+function onConcField(id,field,val,dateKey){
+  const d=loadConc(dateKey);if(!d[id])d[id]={};d[id][field]=val;saveConc(dateKey,d);showConcSaved(id);
+}
+function showConcSaved(id){
+  const el=document.getElementById("csaved_"+id);if(!el)return;
+  el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000);
+}
+function toggleConcCard(id){openConc.has(id)?openConc.delete(id):openConc.add(id);renderConc()}
+
+function renderConc(){
+  const dateKey=toKey(concDate);
+  document.getElementById("conc-date-lbl").textContent=fmtDate(concDate);
+  document.getElementById("conc-obs-input").value=localStorage.getItem(concObsKey(dateKey))||"";
+  const data=loadConc(dateKey);
+  const okN=BPO_EMPRESAS.filter(e=>(data[e.id]?.status)==="ok").length;
+  const pendN=BPO_EMPRESAS.filter(e=>(data[e.id]?.status)==="pendente").length;
+  const errN=BPO_EMPRESAS.filter(e=>(data[e.id]?.status)==="erro").length;
+  const vazioN=BPO_EMPRESAS.length-okN-pendN-errN;
+  document.getElementById("conc-ok").textContent=okN;
+  document.getElementById("conc-pend").textContent=pendN;
+  document.getElementById("conc-err").textContent=errN;
+  document.getElementById("conc-vazio").textContent=vazioN;
+  const pct=Math.round(okN/BPO_EMPRESAS.length*100);
+  document.getElementById("conc-fill").style.width=pct+"%";
+  document.getElementById("conc-txt").textContent=`${okN} de ${BPO_EMPRESAS.length} empresas — ${pct}%`;
+  const filtered=BPO_EMPRESAS.filter(e=>{
+    if(concFilt==="rafael") return e.resp==="rafael";
+    if(concFilt==="tarik") return e.resp==="tarik";
+    if(concFilt==="ok") return(data[e.id]?.status)==="ok";
+    if(concFilt==="pendente") return(data[e.id]?.status)==="pendente";
+    if(concFilt==="erro") return(data[e.id]?.status)==="erro";
+    return true;
+  });
+  document.getElementById("conc-rcount").textContent=`${filtered.length} empresa${filtered.length!==1?"s":""} exibida${filtered.length!==1?"s":""}`;
+  document.getElementById("conc-cards").innerHTML=filtered.map(e=>{
+    const d=data[e.id]||{};const st=d.status||"vazio";const isO=openConc.has(e.id);const bc=bClass(e.banco);
+    return`<div class="conc-card ${st}${isO?" open":""}">
+      <div class="conc-top">
+        <div class="av ${e.resp}">${ini(e.nome)}</div>
+        <div class="conc-info">
+          <div class="conc-nome">${e.nome}</div>
+          <div class="conc-meta">
+            <span class="btag ${bc}">${e.banco}</span>
+            <span class="cnpj mono">Ag:${e.ag} C:${e.conta}</span>
+          </div>
+        </div>
+        <div class="conc-right" onclick="event.stopPropagation()">
+          <input class="saldo-input" type="text" placeholder="Saldo R$" value="${d.saldo||""}" onchange="onConcSaldo('${e.id}',this.value,'${dateKey}')">
+          <select class="status-sel ${st!=="vazio"?st:""}" onchange="onConcStatus('${e.id}',this.value,'${dateKey}');this.className='status-sel '+this.value">
+            <option value="vazio" ${st==="vazio"?"selected":""}>— Status</option>
+            <option value="ok" ${st==="ok"?"selected":""}>✓ OK</option>
+            <option value="pendente" ${st==="pendente"?"selected":""}>⏳ Pendente</option>
+            <option value="erro" ${st==="erro"?"selected":""}>⚠ Erro</option>
+          </select>
+          <button class="tog" onclick="toggleConcCard('${e.id}')">▼</button>
+        </div>
+      </div>
+      <div class="conc-detail">
+        <div class="dg2">
+          <div class="df"><label>Saldo extrato (R$)</label><input type="text" value="${d.saldo||""}" onchange="onConcSaldo('${e.id}',this.value,'${dateKey}')"></div>
+          <div class="df"><label>Divergência (R$)</label><input type="text" value="${d.divergencia||""}" onchange="onConcField('${e.id}','divergencia',this.value,'${dateKey}')"></div>
+          <div class="df df-full"><label>Observações</label><textarea onchange="onConcField('${e.id}','obs',this.value,'${dateKey}')">${d.obs||""}</textarea></div>
+          <div class="df df-full"><label>Lançamentos pendentes no Omie</label><textarea onchange="onConcField('${e.id}','lancamentos',this.value,'${dateKey}')">${d.lancamentos||""}</textarea></div>
+        </div>
+        <div class="saved" id="csaved_${e.id}">✓ Salvo</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ============================================================
+// EMPRESAS
+// ============================================================
+let eFilts=new Set();
+function toggleEF(k,el){eFilts.has(k)?eFilts.delete(k):eFilts.add(k);el.classList.toggle("on");document.getElementById("ef-clear").classList.toggle("show",eFilts.size>0);updateEFSummary();renderEmpresas()}
+function clearEF(){eFilts.clear();document.querySelectorAll("#tab-empresas .pill").forEach(p=>p.classList.remove("on"));document.getElementById("ef-clear").classList.remove("show");updateEFSummary();renderEmpresas()}
+function updateEFSummary(){const labels={trk:"Grupo TRK",bpo:"BPO",rafael:"Rafael",tarik:"Tárik",inter:"Inter",santander:"Santander",bradesco:"Bradesco"};document.getElementById("ef-summary").innerHTML=eFilts.size?`Filtrando por: ${[...eFilts].map(k=>`<b>${labels[k]||k}</b>`).join(" + ")}`:""}
+
+function passesEF(e){
+  if(!eFilts.size) return true;
+  const grps=[...eFilts].filter(k=>["trk","bpo"].includes(k));
+  const resp=[...eFilts].filter(k=>["rafael","tarik"].includes(k));
+  const bank=[...eFilts].filter(k=>["inter","santander","bradesco"].includes(k));
+  const gOk=!grps.length||grps.includes(e.grupo);
+  const rOk=!resp.length||resp.includes(e.resp);
+  const bOk=!bank.length||bank.some(b=>e.banco.toLowerCase().includes(b));
+  return gOk&&rOk&&bOk;
+}
+
+function renderEmpresas(){
+  const qv=document.getElementById("gq").value.toLowerCase();
+  const f=TODAS_EMPRESAS.filter(e=>{
+    const s=[e.nome,e.cnpj,e.resp,e.banco,e.ag,e.conta,e.grupo].join(" ").toLowerCase();
+    return s.includes(qv)&&passesEF(e);
+  });
+  document.getElementById("se-total").textContent=f.length;
+  document.getElementById("se-trk").textContent=f.filter(e=>e.grupo==="trk").length;
+  document.getElementById("se-bpo").textContent=f.filter(e=>e.grupo==="bpo").length;
+  document.getElementById("se-rafael").textContent=f.filter(e=>e.resp==="rafael").length;
+  document.getElementById("se-rcount").textContent=`${f.length} empresa${f.length!==1?"s":""} encontrada${f.length!==1?"s":""}`;
+  const trk=f.filter(e=>e.grupo==="trk"),bpo=f.filter(e=>e.grupo==="bpo");
+  let html="";
+  if(trk.length) html+=`<div class="sec-title"><span class="sbadge trk">Grupo TRK</span><span class="scnt">${trk.length}</span></div>`+trk.map(eCard).join("");
+  if(bpo.length) html+=`<div class="sec-title"><span class="sbadge bpo">BPO</span><span class="scnt">${bpo.length}</span></div>`+bpo.map(eCard).join("");
+  if(!html) html=`<div class="none">Nenhuma empresa encontrada</div>`;
+  document.getElementById("se-cards").innerHTML=html;
+}
+
+function eCard(e){const bc=bClass(e.banco);return`<div class="card ${e.grupo}">
+  <div class="av ${e.grupo}">${ini(e.nome)}</div>
+  <div class="cm"><div class="cn">${e.nome}</div>
+  <div class="meta"><span class="cnpj">${e.cnpj}</span><span class="resp-badge ${e.resp}">${e.resp==="rafael"?"Rafael":"Tárik"}</span></div></div>
+  <div class="right"><span class="btag ${bc}">${e.banco}</span><span class="itag"><b>Ag:</b>${e.ag}</span><span class="itag"><b>C:</b>${e.conta}</span><span class="gtag ${e.grupo}">${e.grupo==="trk"?"TRK":"BPO"}</span></div>
+</div>`}
+
+// ============================================================
+// BANCOS
+// ============================================================
+let bFilts=new Set();
+function toggleBF(k,el){bFilts.has(k)?bFilts.delete(k):bFilts.add(k);el.classList.toggle("on");document.getElementById("bf-clear").classList.toggle("show",bFilts.size>0);updateBFSummary();renderBancos()}
+function clearBF(){bFilts.clear();document.querySelectorAll("#tab-bancos .pill").forEach(p=>p.classList.remove("on"));document.getElementById("bf-clear").classList.remove("show");updateBFSummary();renderBancos()}
+function updateBFSummary(){const labels={trk:"Grupo TRK",bpo:"BPO",rafael:"Rafael",tarik:"Tárik",inter:"Inter",santander:"Santander",bradesco:"Bradesco"};document.getElementById("bf-summary").innerHTML=bFilts.size?`Filtrando por: ${[...bFilts].map(k=>`<b>${labels[k]||k}</b>`).join(" + ")}`:""}
+
+function passesBF(e){
+  if(!bFilts.size) return true;
+  const grps=[...bFilts].filter(k=>["trk","bpo"].includes(k));
+  const resp=[...bFilts].filter(k=>["rafael","tarik"].includes(k));
+  const bank=[...bFilts].filter(k=>["inter","santander","bradesco"].includes(k));
+  return(!grps.length||grps.includes(e.grupo))&&(!resp.length||resp.includes(e.resp))&&(!bank.length||bank.some(b=>e.banco.toLowerCase().includes(b)));
+}
+
+function renderBancos(){
+  const qv=document.getElementById("gq").value.toLowerCase();
+  const f=TODAS_EMPRESAS.filter(e=>{
+    const s=[e.nome,e.cnpj,e.banco,e.ag,e.conta].join(" ").toLowerCase();
+    return s.includes(qv)&&passesBF(e);
+  });
+  document.getElementById("sb-total").textContent=f.length;
+  document.getElementById("sb-inter").textContent=f.filter(e=>e.banco==="Inter").length;
+  document.getElementById("sb-sant").textContent=f.filter(e=>e.banco==="Santander").length;
+  document.getElementById("sb-brad").textContent=f.filter(e=>e.banco==="Bradesco").length;
+  document.getElementById("sb-rcount").textContent=`${f.length} conta${f.length!==1?"s":""} encontrada${f.length!==1?"s":""}`;
+  const trk=f.filter(e=>e.grupo==="trk"),bpo=f.filter(e=>e.grupo==="bpo");
+  let html="";
+  if(trk.length) html+=`<div class="sec-title"><span class="sbadge trk">Grupo TRK</span><span class="scnt">${trk.length}</span></div>`+trk.map(bCard).join("");
+  if(bpo.length) html+=`<div class="sec-title"><span class="sbadge bpo">BPO</span><span class="scnt">${bpo.length}</span></div>`+bpo.map(bCard).join("");
+  if(!html) html=`<div class="none">Nenhuma conta encontrada</div>`;
+  document.getElementById("sb-cards").innerHTML=html;
+}
+
+function bCard(e){const bc=bClass(e.banco);return`<div class="card ${e.grupo}">
+  <div class="av ${e.grupo}">${ini(e.nome)}</div>
+  <div class="cm"><div class="cn">${e.nome}</div>
+  <div class="meta"><span class="cnpj">${e.cnpj}</span><span class="resp-badge ${e.resp}">${e.resp==="rafael"?"Rafael":"Tárik"}</span></div></div>
+  <div class="right"><span class="btag ${bc}">${e.banco}</span><span class="itag"><b>Ag:</b>${e.ag}</span><span class="itag"><b>C:</b>${e.conta}</span></div>
+</div>`}
+
+// ============================================================
+// HONORÁRIOS
+// ============================================================
+function renderHon(){
+  const totHon=HONORARIOS.reduce((a,h)=>a+h.hon,0);
+  const totAlug=HONORARIOS.reduce((a,h)=>a+h.alug,0);
+  const totTotal=HONORARIOS.reduce((a,h)=>a+h.total,0);
+  const totOmie=OMIE_LICENCAS.reduce((a,o)=>a+o.valor,0);
+  document.getElementById("hon-content").innerHTML=`
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="stat-n">${fmtBRL(totTotal)}</div><div class="stat-l">Total contabilidade/mês</div></div>
+    <div class="stat"><div class="stat-n">${fmtBRL(totOmie)}</div><div class="stat-l">Total OMIE/mês</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--err)">${fmtBRL(totTotal+totOmie)}</div><div class="stat-l">Total geral/mês</div></div>
+    <div class="stat"><div class="stat-n">${HONORARIOS.length}</div><div class="stat-l">Empresas</div></div>
+  </div>
+  <div class="sec-title" style="margin-bottom:8px">Honorários Contábeis</div>
+  <table><thead><tr><th>Empresa</th><th>Contab.</th><th>Honorário</th><th>Aluguel End. Fiscal</th><th>Total</th><th>Obs</th></tr></thead>
+  <tbody>${HONORARIOS.map(h=>`<tr><td>${h.empresa}</td><td>${h.contab}</td><td>${fmtBRL(h.hon)}</td><td>${fmtBRL(h.alug)}</td><td style="font-weight:600">${fmtBRL(h.total)}</td><td style="color:var(--muted);font-size:12px">${h.obs}</td></tr>`).join("")}
+  <tr class="total"><td colspan="2">Total</td><td>${fmtBRL(totHon)}</td><td>${fmtBRL(totAlug)}</td><td>${fmtBRL(totTotal)}</td><td></td></tr></tbody></table>
+  <div class="sec-title" style="margin:20px 0 8px">Licenças OMIE</div>
+  <table><thead><tr><th>Empresa</th><th>Valor mensal</th></tr></thead>
+  <tbody>${OMIE_LICENCAS.map(o=>`<tr><td>${o.empresa}</td><td>${fmtBRL(o.valor)}</td></tr>`).join("")}
+  <tr class="total"><td>Total</td><td>${fmtBRL(totOmie)}</td></tr></tbody></table>`;
+}
+
+// ============================================================
+// BPO FINANCEIRO
+// ============================================================
+function renderBpoFi(){
+  const totV=BPO_FIN.reduce((a,b)=>a+b.valor,0);
+  const totRaf=BPO_FIN.reduce((a,b)=>a+b.vraf,0);
+  const totTar=BPO_FIN.reduce((a,b)=>a+b.vtarik,0);
+  const totRec=BPO_FIN.reduce((a,b)=>a+b.receita,0);
+  document.getElementById("bpofi-content").innerHTML=`
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="stat-n">${fmtBRL(totV)}</div><div class="stat-l">Total cobrado</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--rafael)">${fmtBRL(totRaf)}</div><div class="stat-l">Part. Rafael</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--tarik)">${fmtBRL(totTar)}</div><div class="stat-l">Part. Tárik</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--ok)">${fmtBRL(totRec)}</div><div class="stat-l">Receita líquida</div></div>
+  </div>
+  <table><thead><tr><th>Empresa</th><th>Cobrado</th><th>% Rafael</th><th>R$ Rafael</th><th>% Tárik</th><th>R$ Tárik</th><th>Receita</th></tr></thead>
+  <tbody>${BPO_FIN.map(b=>`<tr>
+    <td>${b.empresa}</td><td>${fmtBRL(b.valor)}</td>
+    <td>${(b.praf*100).toFixed(1)}%</td><td style="color:var(--rafael)">${fmtBRL(b.vraf)}</td>
+    <td>${(b.ptarik*100).toFixed(1)}%</td><td style="color:var(--tarik)">${fmtBRL(b.vtarik)}</td>
+    <td style="font-weight:600;color:var(--ok)">${fmtBRL(b.receita)}</td>
+  </tr>`).join("")}
+  <tr class="total"><td>Total</td><td>${fmtBRL(totV)}</td><td></td><td style="color:var(--rafael)">${fmtBRL(totRaf)}</td><td></td><td style="color:var(--tarik)">${fmtBRL(totTar)}</td><td style="color:var(--ok)">${fmtBRL(totRec)}</td></tr>
+  </tbody></table>`;
+}
+
+// ============================================================
+// IMÓVEIS
+// ============================================================
+function renderImoveis(){
+  document.getElementById("imoveis-content").innerHTML=`
+  <table><thead><tr><th>Apelido</th><th>Nome</th><th>NIRF</th><th>Proprietário</th><th>Matrícula</th></tr></thead>
+  <tbody>${IMOVEIS.map(im=>`<tr><td style="font-weight:500">${im.apelido}</td><td>${im.nome}</td><td class="mono">${im.nirf}</td><td>${im.prop}</td><td class="mono">${im.mat}</td></tr>`).join("")}</tbody></table>`;
+}
+
+// ============================================================
+// MANDATOS
+// ============================================================
+function renderMandatos(){
+  const sorted=[...MANDATOS].map(m=>{const d=diffDays(m.venc);return{...m,dias:d,cor:d<0?"vermelho":d<=30?"vermelho":d<=90?"amarelo":"verde"}}).sort((a,b)=>a.dias-b.dias);
+  const criticos=sorted.filter(m=>m.cor==="vermelho");
+  const alert=document.getElementById("mand-alert");
+  if(criticos.length){alert.classList.add("show");alert.textContent=`⚠️ ${criticos.length} mandato${criticos.length>1?"s":""}  com vencimento crítico!`}
+  else alert.classList.remove("show");
+  document.getElementById("mand-list").innerHTML=sorted.map(m=>`
+  <div class="mand-card">
+    <div class="mand-dot ${m.cor}"></div>
+    <div class="mand-info">
+      <div class="mand-nome">${m.empresa}</div>
+      <div class="mand-det">Diretores: ${m.diretores} · Ata: ${m.ata} · Venc: ${m.venc}</div>
+    </div>
+    <span class="mand-badge ${m.cor}">${m.dias<0?"Vencido há "+Math.abs(m.dias)+" dias":m.dias===0?"Vence hoje":"Vence em "+m.dias+" dias"}</span>
+  </div>`).join("");
+}
+
+// ============================================================
+// BUSCA GLOBAL
+// ============================================================
+function globalSearch(){
+  const active=document.querySelector(".ntab.on");
+  if(!active) return;
+  const tab=active.getAttribute("onclick").match(/switchTab\('(\w+)'/)?.[1];
+  if(tab==="empresas") renderEmpresas();
+  if(tab==="bancos") renderBancos();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderRotinas();
+renderTasks();
+renderConc();
+renderEmpresas();
+renderBancos();
+</script>
+</body>
+</html>

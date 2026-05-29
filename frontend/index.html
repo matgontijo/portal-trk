@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Portal Grupo TRK</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/design.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER
+       ========================================== -->
+  <header class="header anim-slide-down">
+    <a href="#" class="logo">
+      <div class="logo-dot"></div>
+      <div class="logo-text">GRUPO<span>TRK</span></div>
+    </a>
+
+    <div class="search-wrap">
+      <div class="search-bar">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="global-search" placeholder="Buscar empresas, CNPJ, bancos..." autocomplete="off">
+        <span class="search-kbd">Ctrl K</span>
+      </div>
+      <div class="search-dropdown" id="search-dropdown"></div>
+    </div>
+
+    <div class="header-actions">
+      <button class="icon-btn" onclick="Store.downloadBackup()" title="Backup">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </button>
+      <button class="icon-btn" onclick="Theme.toggle()" title="Mudar Tema">
+        <svg id="theme-icon-moon" style="display:none" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg id="theme-icon-sun" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       DESKTOP NAVIGATION
+       ========================================== -->
+  <nav class="desktop-nav anim-slide-down stagger-1">
+    <div class="nav-inner">
+      <button class="nav-tab active" onclick="switchTab('rotinas', this)" data-tab="rotinas">
+        <svg class="tab-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        Rotinas Diárias
+      </button>
+      <button class="nav-tab" onclick="switchTab('conciliacao', this)" data-tab="conciliacao">
+        <svg class="tab-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Conciliação BPO
+      </button>
+      <button class="nav-tab" onclick="switchTab('empresas', this)" data-tab="empresas">
+        <svg class="tab-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v2M12 14v2M16 14v2"/></svg>
+        Empresas do Grupo
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==========================================
+       MAIN CONTENT
+       ========================================== -->
+  <main class="main">
+    
+    <!-- ── TAB: ROTINAS ── -->
+    <section id="tab-rotinas" class="tab-panel active">
+      <div class="date-nav anim-fade-up">
+        <button onclick="Rotinas.setDay(1)">Seg</button>
+        <button onclick="Rotinas.setDay(2)">Ter</button>
+        <button onclick="Rotinas.setDay(3)">Qua</button>
+        <button onclick="Rotinas.setDay(4)">Qui</button>
+        <button onclick="Rotinas.setDay(5)">Sex</button>
+      </div>
+
+      <div class="rotinas-grid">
+        <div class="rotinas-main">
+          <div id="rotinas-container"></div>
+        </div>
+        
+        <div class="rotinas-sidebar anim-slide-in-right stagger-2">
+          <!-- Drive Generator -->
+          <div class="drive-panel">
+            <div class="drive-header">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              Criação de Pastas Drive
+            </div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Padrão: <b id="drive-month"></b></div>
+            <input type="text" class="drive-path" id="drive-path" readonly onclick="this.select();Utils.copyToClipboard(this.value);Toast.show('Caminho copiado','info')">
+            <div class="drive-items" id="drive-list"></div>
+          </div>
+          
+          <!-- Desk Tasks -->
+          <div class="tasks-panel">
+            <div class="tasks-title">
+              <div>Tarefas e Lembretes <span class="task-count-badge" id="tasks-badge-desk">0</span></div>
+              <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="Kanban.openBoard()">📊 Abrir Kanban</button>
+            </div>
+            <div class="tasks-subtitle">Organize suas pendências avulsas</div>
+            <div class="task-input-wrap">
+              <input type="text" id="task-input" placeholder="Nova tarefa...">
+              <button class="add-btn" onclick="Tasks.add()">+</button>
+            </div>
+            <div class="task-meta-row">
+              <select id="task-prio">
+                <option value="normal">Normal</option>
+                <option value="alta">Alta</option>
+                <option value="baixa">Baixa</option>
+              </select>
+              <input type="date" id="task-due" title="Data limite">
+            </div>
+            <div class="task-filters">
+              <button class="tf on" data-f="todas" onclick="Tasks.setFilter('todas')">Todas</button>
+              <button class="tf" data-f="pendentes" onclick="Tasks.setFilter('pendentes')">Pend.</button>
+              <button class="tf" data-f="concluidas" onclick="Tasks.setFilter('concluidas')">Concluídas</button>
+              <button class="task-act-btn" style="margin-left:auto;color:var(--err)" onclick="Tasks.clearDone()" title="Limpar concluídas">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+              </button>
+            </div>
+            <div id="tasks-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TAB: CONCILIAÇÃO ── -->
+    <section id="tab-conciliacao" class="tab-panel">
+      <!-- Date Nav -->
+      <div class="date-nav anim-fade-up">
+        <button id="conc-prev">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="date-label" id="conc-date-label"></div>
+        <button id="conc-next">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="today-btn" id="conc-today">Hoje</button>
+        <input type="date" id="conc-date" style="position:absolute;opacity:0;pointer-events:none">
+        <button onclick="document.getElementById('conc-date').showPicker()" style="border:none;background:none;padding:8px">📅</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="conc-progress anim-fade-up stagger-1">
+        <div class="conc-prog-header">
+          <div class="conc-prog-title">BPO Terceirizado — Controle Diário</div>
+          <div class="conc-stats">
+            <div class="conc-stat" id="conc-stat-ok"></div>
+            <div class="conc-stat" id="conc-stat-pend"></div>
+            <div class="conc-stat" id="conc-stat-err"></div>
+          </div>
+        </div>
+        <div class="progress-wrap" style="margin-top:8px">
+          <div class="progress-bar"><div class="progress-fill" id="conc-fill" style="width:0%"></div></div>
+          <div class="progress-text" id="conc-pct"><span>Progresso</span><span><b>0%</b> concluído</span></div>
+        </div>
+      </div>
+
+      <!-- Observações do Dia -->
+      <div class="conc-obs-wrap anim-fade-up stagger-2">
+        <label>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Anotações do Dia
+        </label>
+        <textarea id="conc-obs-day" placeholder="Resumo, pendências gerais, contatos feitos no dia..."></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="anim-fade-up stagger-3" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+        <div class="bulk-actions">
+          <button class="bulk-btn" id="bulk-auto" onclick="Conciliacao.runSmartConciliation()" style="background:var(--rafael-l);color:var(--rafael);border-color:var(--rafael);font-weight:800">🪄 Auto-Conciliação</button>
+          <button class="bulk-btn ok" id="bulk-ok">✓ Marcar tudo OK</button>
+          <button class="bulk-btn reset" id="bulk-reset">↺ Limpar Status</button>
+        </div>
+        <button class="hist-btn" onclick="Conciliacao.toggleHistory()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Histórico de Alterações
+        </button>
+      </div>
+
+      <!-- History Panel -->
+      <div class="hist-panel anim-slide-down" id="conc-hist-panel"></div>
+
+      <!-- List -->
+      <div id="conc-list"></div>
+    </section>
+
+    <!-- ── TAB: EMPRESAS ── -->
+    <section id="tab-empresas" class="tab-panel">
+      <div class="stats-grid anim-fade-up">
+        <div class="stat-card">
+          <div class="stat-num">23</div>
+          <div class="stat-label">Total de Empresas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">6</div>
+          <div class="stat-label">Grupo TRK</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">17</div>
+          <div class="stat-label">BPO Terceirizado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-drive">0</div>
+          <div class="stat-label">Pastas Drive Hoje</div>
+        </div>
+      </div>
+
+      <div class="filters-section anim-fade-up stagger-1">
+        <div class="filter-row">
+          <div class="filter-label">Filtros:</div>
+          <div class="pill emp-pill p-trk" onclick="Empresas.setFilter('trk')"><div class="dot"></div> Grupo TRK</div>
+          <div class="pill emp-pill p-bpo" onclick="Empresas.setFilter('bpo')"><div class="dot"></div> BPO</div>
+          <button class="clear-btn" id="emp-clear" onclick="Empresas.clearFilter()">✕ Limpar</button>
+        </div>
+        <div class="filter-row" style="margin-top:12px">
+          <div class="conc-search" style="flex:1;margin-bottom:0">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" id="emp-search" placeholder="Filtrar nesta lista...">
+          </div>
+        </div>
+      </div>
+
+      <div class="sort-bar anim-fade-up stagger-2">
+        <label>Ordenar por:</label>
+        <select class="sort-select" id="emp-sort">
+          <option value="nome">Nome A-Z</option>
+          <option value="banco">Banco</option>
+        </select>
+        <div class="result-count" id="emp-count" style="margin-left:12px;margin-bottom:0;color:var(--text3);font-size:12px"></div>
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="list" title="Lista">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          </button>
+          <button class="view-btn" data-view="grid" title="Cards">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="empresas-list"></div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       MOBILE UI (Bottom Nav, FAB, Drawer)
+       ========================================== -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-tab active" onclick="switchTab('rotinas', this)" data-tab="rotinas">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        Rotinas
+      </button>
+      <button class="bnav-tab" onclick="switchTab('conciliacao', this)" data-tab="conciliacao">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        BPO
+      </button>
+      <button class="bnav-tab" onclick="switchTab('empresas', this)" data-tab="empresas">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v2M12 14v2M16 14v2"/></svg>
+        Empresas
+      </button>
+    </div>
+  </nav>
+
+  <button class="fab" id="fab-tasks">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <div class="fab-badge" id="fab-badge"></div>
+  </button>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <div class="drawer" id="drawer-tasks">
+    <div class="drawer-header">
+      <h3>Minhas Tarefas</h3>
+      <button class="drawer-close" id="drawer-close">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Adicione para fazer depois:</div>
+      <div class="task-input-wrap">
+        <input type="text" id="mob-task-input" placeholder="Nova tarefa..." onkeypress="if(event.key==='Enter'){document.getElementById('task-input').value=this.value;Tasks.add();this.value='';}">
+        <button class="add-btn" onclick="document.getElementById('task-input').value=document.getElementById('mob-task-input').value;Tasks.add();document.getElementById('mob-task-input').value='';">+</button>
+      </div>
+      <div style="font-size:11px;color:var(--text4);margin-top:20px;text-align:center">As tarefas detalhadas aparecem na aba Rotinas (Desktop) ou gerencie por aqui.</div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <footer>
+    <div>Portal <span>GRUPO TRK</span> v2.0</div>
+    <div class="footer-actions">
+      <button class="footer-link" onclick="Store.downloadBackup()">⬇️ Backup</button>
+      <button class="footer-link" onclick="Confirm.show({title:'Resetar Tudo?',message:'Apagar dados?',confirmText:'Sim, apagar',type:'danger'}).then(r=>{if(r){Store.clearAll();location.reload()}})">⚠️ Resetar</button>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/store.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/kanban.js"></script>
+  <script src="js/conciliacao.js"></script>
+  <script src="js/rotinas.js"></script>
+  <script src="js/empresas.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
