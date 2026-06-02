@@ -22,7 +22,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
 
   login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password })
+    // FastAPI OAuth2PasswordRequestForm exige form-urlencoded com campos 'username' e 'password'
+    const formData = new URLSearchParams()
+    formData.append('username', email)
+    formData.append('password', password)
+    
+    const response = await api.post('/auth/login', formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
     const { access_token } = response.data
     localStorage.setItem('access_token', access_token)
 
