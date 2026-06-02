@@ -41,7 +41,16 @@ export function Usuarios() {
       setFormData({ name: '', email: '', password: '', role: 'funcionario', sector: '' })
       carregarUsuarios()
     } catch (error: any) {
-      alert(error.response?.data?.detail || 'Erro ao criar usuário')
+      const detail = error.response?.data?.detail
+      if (Array.isArray(detail)) {
+        const msgs = detail.map((err: any) => {
+          // Remove o prefixo "Value error, " que o Pydantic adiciona
+          return err.msg.replace('Value error, ', '')
+        })
+        alert(msgs.join('\n'))
+      } else {
+        alert(detail || 'Erro ao criar usuário')
+      }
     } finally {
       setIsSaving(false)
     }
