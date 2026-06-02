@@ -8,7 +8,11 @@
 
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+if (!API_URL.endsWith('/api/v1')) {
+  // Se o usuário esqueceu de colocar o /api/v1 na variável do Render, a gente coloca por ele
+  API_URL = `${API_URL.replace(/\/$/, '')}/api/v1`
+}
 
 const api = axios.create({
   baseURL: API_URL,
