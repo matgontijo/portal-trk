@@ -55,11 +55,16 @@ async def login(
 
     # Verificar lockout
     lockout_key = f"lockout:{dados.email}"
-    if await redis.get(lockout_key):
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Conta temporariamente bloqueada. Tente novamente em 15 minutos.",
-        )
+    try:
+        if await redis.get(lockout_key):
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail="Conta temporariamente bloqueada. Tente novamente em 15 minutos.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("redis_error_lockout", error=str(e))
 
     # Buscar usuário
     result = await db.execute(select(User).where(User.email == dados.email))
@@ -68,12 +73,15 @@ async def login(
     if user is None or not verificar_senha(dados.password, user.password_hash):
         # Incrementar falhas
         falhas_key = f"login_falhas:{dados.email}"
-        falhas = await redis.incr(falhas_key)
-        await redis.expire(falhas_key, LOCKOUT_DURATION)
+        try:
+            falhas = await redis.incr(falhas_key)
+            await redis.expire(falhas_key, LOCKOUT_DURATION)
 
-        if falhas >= MAX_FALHAS:
-            await redis.setex(lockout_key, LOCKOUT_DURATION, "1")
-            logger.warning("conta_bloqueada", email=dados.email, ip=request.client.host)
+            if falhas >= MAX_FALHAS:
+                await redis.setex(lockout_key, LOCKOUT_DURATION, "1")
+                logger.warning("conta_bloqueada", email=dados.email, ip=request.client.host)
+        except Exception as e:
+            logger.warning("redis_error_falhas", error=str(e))
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -87,7 +95,10 @@ async def login(
         )
 
     # Limpar falhas
-    await redis.delete(f"login_falhas:{dados.email}")
+    try:
+        await redis.delete(f"login_falhas:{dados.email}")
+    except Exception:
+        pass
 
     # Gerar tokens
     token_data = {"sub": str(user.id), "role": user.role, "name": user.name}
