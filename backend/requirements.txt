@@ -31,7 +31,7 @@ email-validator==2.2.0
 celery[redis]==5.4.0
 
 # ─── Machine Learning ───
-scikit-learn==1.6.1
+scikit-learn==1.5.2
 pandas==2.2.3
 numpy==2.2.1
 joblib==1.4.2
