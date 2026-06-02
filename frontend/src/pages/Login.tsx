@@ -24,7 +24,18 @@ export function Login() {
       await login(email, password)
       navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Erro ao realizar login')
+      let errorMsg = 'Erro ao realizar login'
+      if (err.response?.data?.detail) {
+        const detail = err.response.data.detail
+        if (typeof detail === 'string') {
+          errorMsg = detail
+        } else if (Array.isArray(detail)) {
+          errorMsg = detail.map((d: any) => d.msg).join(', ')
+        } else if (typeof detail === 'object') {
+          errorMsg = JSON.stringify(detail)
+        }
+      }
+      setError(errorMsg)
     } finally {
       setIsLoading(false)
     }
