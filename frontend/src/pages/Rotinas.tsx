@@ -7,6 +7,29 @@ import { useAuthStore } from '../store/authStore'
 import { CATEGORIA_CORES } from '../utils/constants'
 import { RotinaBuilderModal } from '../components/rotinas/RotinaBuilderModal'
 
+const renderTextWithLinks = (text: string) => {
+  if (!text) return ''
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const parts = text.split(urlRegex)
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a 
+          key={i} 
+          href={part.startsWith('http') ? part : `https://${part}`} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-primary-600 dark:text-primary-400 hover:underline break-words"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
 export function Rotinas() {
   const { user } = useAuthStore()
   const [rotinas, setRotinas] = useState<any[]>([])
@@ -256,7 +279,7 @@ export function Rotinas() {
                 {isExpanded && (
                   <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 p-5">
                     {rotina.descricao && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{rotina.descricao}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 whitespace-pre-wrap">{renderTextWithLinks(rotina.descricao)}</p>
                     )}
 
                     <div className="space-y-3">
@@ -291,7 +314,7 @@ export function Rotinas() {
 
                               <div className="flex-1 min-w-0">
                                 <p className={`text-sm font-semibold transition-colors duration-300 ${done ? 'text-slate-500 line-through' : 'text-slate-900 dark:text-slate-200'}`}>
-                                  {bloco.label} {bloco.is_required && <span className="text-red-500 ml-1">*</span>}
+                                  {renderTextWithLinks(bloco.label)} {bloco.is_required && <span className="text-red-500 ml-1">*</span>}
                                 </p>
                                 
                                 {/* Inputs Específicos para Funcionário (só exibe se não estiver concluído ou se já tiver valor) */}
