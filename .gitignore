@@ -1,36 +1,70 @@
-# Python
+# ════════════════════════════════════════════════════════════════
+# Portal TRK — Git Ignore
+# ════════════════════════════════════════════════════════════════
+
+# ─── Ambiente ───
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# ─── Python ───
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
+dist/
+build/
+.eggs/
 *.egg
-
-# Bancos de dados locais
-*.db
-*.sqlite3
-banco.db
-backend/banco.db
-
-# Ambientes virtuais
+.venv/
 venv/
-.env
-.venv
+env/
 
-# VSCode/IDEs
+# ─── Modelos ML ───
+backend/models/*.pkl
+backend/models/*.joblib
+
+# ─── Relatórios gerados ───
+backend/reports/*.pdf
+
+# ─── Uploads ───
+backend/data/uploads/
+
+# ─── Certificados ───
+backend/data/certs/
+
+# ─── Node / Frontend ───
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ─── IDE ───
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Testes ───
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ─── Alembic ───
+# Não ignorar versions/ — migrations devem ser versionadas
+
+# ─── Docker ───
+*.log
+
+# ─── Protótipo antigo (manter no repo mas não usar) ───
+# portal_trk_completo.html é referência visual apenas

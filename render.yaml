@@ -1,0 +1,162 @@
+# render.yaml — Configuração de deploy do Portal TRK no Render.com
+# Define todos os serviços, bancos de dados e variáveis de ambiente
+
+databases:
+  - name: portal-trk-db
+    plan: starter
+    databaseName: portal_trk
+    postgresMajorVersion: "16"
+    ipAllowList: []
+
+services:
+  # ─── API Backend (FastAPI) ───
+  - type: web
+    name: portal-trk-api
+    runtime: docker
+    repo: https://github.com/seu-usuario/portal-trk
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portal-trk-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: portal-trk-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_CLAIMS_SUB
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: RENDER_DISK_PATH
+        value: /data
+    disk:
+      name: portal-trk-data
+      mountPath: /data
+      sizeGB: 1
+    releaseCommand: alembic upgrade head
+
+  # ─── Celery Worker ───
+  - type: worker
+    name: portal-trk-worker
+    runtime: docker
+    repo: https://github.com/seu-usuario/portal-trk
+    dockerfilePath: ./backend/Dockerfile.worker
+    dockerContext: ./backend
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portal-trk-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: portal-trk-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_CLAIMS_SUB
+        sync: false
+      - key: RENDER_DISK_PATH
+        value: /data
+    disk:
+      name: portal-trk-worker-data
+      mountPath: /data
+      sizeGB: 1
+
+  # ─── Celery Beat (Scheduler) ───
+  - type: worker
+    name: portal-trk-beat
+    runtime: docker
+    repo: https://github.com/seu-usuario/portal-trk
+    dockerfilePath: ./backend/Dockerfile.worker
+    dockerContext: ./backend
+    plan: starter
+    dockerCommand: celery -A app.workers.celery_app:celery beat --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portal-trk-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: portal-trk-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+
+  # ─── Frontend (React SPA) ───
+  - type: web
+    name: portal-trk-frontend
+    runtime: static
+    repo: https://github.com/seu-usuario/portal-trk
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+  # ─── Redis ───
+  - type: redis
+    name: portal-trk-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []

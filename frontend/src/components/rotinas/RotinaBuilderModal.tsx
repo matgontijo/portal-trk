@@ -1,0 +1,270 @@
+// frontend/src/components/rotinas/RotinaBuilderModal.tsx
+import { useState, useEffect } from 'react'
+import { X, Trash2, GripVertical, CheckSquare, Type, UploadCloud } from 'lucide-react'
+import api from '../../services/api'
+import type { User } from '../../types/auth'
+
+interface BlockConfig {
+  id: string
+  tipo: 'checkbox' | 'text_short' | 'file_upload'
+  label: string
+  is_required: boolean
+}
+
+interface RotinaBuilderProps {
+  onClose: () => void
+  onSave: () => void
+  rotinaEdit?: any // Se passado, é edição
+}
+
+export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilderProps) {
+  const [usuarios, setUsuarios] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Formulário Principal
+  const [nome, setNome] = useState(rotinaEdit?.nome || '')
+  const [descricao, setDescricao] = useState(rotinaEdit?.descricao || '')
+  const [categoria, setCategoria] = useState(rotinaEdit?.categoria || 'geral')
+  const [diasSemana, setDiasSemana] = useState<number[]>(rotinaEdit?.dias_semana || [1, 2, 3, 4, 5]) // Seg a Sex padrão
+  
+  // Array de IDs selecionados
+  const [userIds, setUserIds] = useState<string[]>(
+    rotinaEdit?.atribuicoes ? rotinaEdit.atribuicoes.map((a:any) => a.user_id) : []
+  )
+
+  // Blocos dinâmicos
+  const [blocos, setBlocos] = useState<BlockConfig[]>(
+    rotinaEdit?.blocos ? rotinaEdit.blocos.map((b:any) => ({...b, id: b.id || Math.random().toString()})) : 
+    [{ id: 'initial-1', tipo: 'checkbox', label: 'Conferir extrato bancário', is_required: true }]
+  )
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get('/users')
+        // Mostrar apenas funcionários e gestores ativos
+        setUsuarios(res.data.filter((u: User) => u.is_active && u.role === 'funcionario'))
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
+
+  const toggleDia = (dia: number) => {
+    setDiasSemana(prev => prev.includes(dia) ? prev.filter(d => d !== dia) : [...prev, dia].sort())
+  }
+
+  const toggleUser = (id: string) => {
+    setUserIds(prev => prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id])
+  }
+
+  const addBloco = (tipo: 'checkbox' | 'text_short' | 'file_upload') => {
+    setBlocos([...blocos, { id: Math.random().toString(), tipo, label: '', is_required: true }])
+  }
+
+  const updateBloco = (id: string, field: keyof BlockConfig, value: any) => {
+    setBlocos(blocos.map(b => b.id === id ? { ...b, [field]: value } : b))
+  }
+
+  const removeBloco = (id: string) => {
+    setBlocos(blocos.filter(b => b.id !== id))
+  }
+
+  const handleSave = async () => {
+    if (!nome.trim()) return alert('Dê um nome à rotina.')
+    if (diasSemana.length === 0) return alert('Selecione pelo menos um dia da semana.')
+    if (userIds.length === 0) return alert('Atribua a pelo menos um funcionário.')
+    if (blocos.length === 0 || blocos.some(b => !b.label.trim())) return alert('Todos os blocos precisam de um título.')
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        nome,
+        descricao,
+        dias_semana: diasSemana,
+        categoria,
+        user_ids: userIds,
+        alertas: [],
+        blocos: blocos.map((b, i) => ({
+          tipo: b.tipo,
+          label: b.label,
+          is_required: b.is_required,
+          config: {},
+          posicao: i
+        }))
+      }
+
+      if (rotinaEdit?.id) {
+        await api.put(`/rotinas/${rotinaEdit.id}`, payload)
+      } else {
+        await api.post('/rotinas/', payload)
+      }
+      onSave()
+    } catch (error) {
+      alert('Erro ao salvar rotina. Tente novamente.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-neutral-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-full flex flex-col overflow-hidden animate-scale-in">
+        
+        {/* Header Modal */}
+        <div className="flex-shrink-0 px-6 py-4 bg-white border-b border-neutral-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-900">{rotinaEdit ? 'Editar Rotina' : 'Nova Rotina Operacional'}</h2>
+            <p className="text-sm text-neutral-500">Configure o fluxo e as fases (blocos) dessa operação diária.</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-500 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Coluna Esquerda: Configs Gerais */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-white p-5 rounded-xl border border-neutral-200 shadow-sm space-y-4">
+                <h3 className="font-semibold text-neutral-900 flex items-center gap-2">Configurações Gerais</h3>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-1">Nome da Rotina</label>
+                  <input type="text" className="input" placeholder="Ex: Conciliação Matinal" value={nome} onChange={e => setNome(e.target.value)} />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-1">Categoria (Cor)</label>
+                  <select className="input" value={categoria} onChange={e => setCategoria(e.target.value)}>
+                    <option value="geral">Geral (Cinza)</option>
+                    <option value="banco">Bancário (Azul Escuro)</option>
+                    <option value="omie">Omie ERP (Azul Claro)</option>
+                    <option value="drive">Google Drive (Laranja)</option>
+                    <option value="pipe">Pipefy (Roxo)</option>
+                    <option value="urgente">Urgente (Vermelho)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-1">Descrição</label>
+                  <textarea className="input min-h-[80px] resize-none" placeholder="Instruções gerais..." value={descricao} onChange={e => setDescricao(e.target.value)} />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-2">Dias de Repetição</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Seg', 'Ter', 'Qua', 'Qui', 'Sex'].map((d, i) => {
+                      const diaInt = i + 1
+                      const isSel = diasSemana.includes(diaInt)
+                      return (
+                        <button key={d} onClick={() => toggleDia(diaInt)} className={`w-9 h-9 rounded-full text-xs font-bold transition-colors ${isSel ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
+                          {d}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-neutral-200 shadow-sm space-y-4">
+                <h3 className="font-semibold text-neutral-900">Atribuição de Equipe</h3>
+                {isLoading ? (
+                  <div className="text-sm text-neutral-400">Carregando equipe...</div>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                    {usuarios.map(u => (
+                      <label key={u.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${userIds.includes(u.id) ? 'border-neutral-900 bg-neutral-50' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                        <input type="checkbox" className="w-4 h-4 accent-neutral-900" checked={userIds.includes(u.id)} onChange={() => toggleUser(u.id)} />
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">{u.name.charAt(0)}</div>
+                          <span className="text-sm font-medium text-neutral-800">{u.name}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Coluna Direita: Builder de Fases (Blocos) */}
+            <div className="lg:col-span-2 flex flex-col h-full min-h-[400px]">
+              <div className="bg-white flex-1 p-5 rounded-xl border border-neutral-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-neutral-900">Fases (Checklist)</h3>
+                  <div className="flex gap-2">
+                    <button onClick={() => addBloco('checkbox')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Check"><CheckSquare className="w-3.5 h-3.5"/> Check</button>
+                    <button onClick={() => addBloco('text_short')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Campo de Texto"><Type className="w-3.5 h-3.5"/> Texto</button>
+                    <button onClick={() => addBloco('file_upload')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Upload/Link"><UploadCloud className="w-3.5 h-3.5"/> Upload</button>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3 overflow-y-auto pr-2">
+                  {blocos.map((bloco, idx) => (
+                    <div key={bloco.id} className="flex items-start gap-3 p-4 bg-neutral-50 border border-neutral-200 rounded-xl relative group">
+                      <div className="mt-2 text-neutral-400 cursor-move hover:text-neutral-600 transition-colors">
+                        <GripVertical className="w-5 h-5" />
+                      </div>
+                      
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          {bloco.tipo === 'checkbox' && <span className="bg-neutral-200 p-1.5 rounded-md text-neutral-600"><CheckSquare className="w-4 h-4"/></span>}
+                          {bloco.tipo === 'text_short' && <span className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Type className="w-4 h-4"/></span>}
+                          {bloco.tipo === 'file_upload' && <span className="bg-orange-100 p-1.5 rounded-md text-orange-600"><UploadCloud className="w-4 h-4"/></span>}
+                          <span className="text-xs font-bold text-neutral-500 uppercase">Fase {idx + 1}</span>
+                        </div>
+                        
+                        <input 
+                          type="text" 
+                          placeholder="Instrução ou Pergunta desta fase..." 
+                          className="w-full bg-transparent border-b border-neutral-300 px-0 py-1 text-sm font-medium focus:outline-none focus:border-neutral-900 transition-colors"
+                          value={bloco.label}
+                          onChange={(e) => updateBloco(bloco.id, 'label', e.target.value)}
+                        />
+                        
+                        <div className="flex items-center justify-between">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              className="accent-neutral-900" 
+                              checked={bloco.is_required} 
+                              onChange={(e) => updateBloco(bloco.id, 'is_required', e.target.checked)} 
+                            />
+                            <span className="text-xs text-neutral-600">Obrigatório</span>
+                          </label>
+                          <button onClick={() => removeBloco(bloco.id)} className="text-neutral-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {blocos.length === 0 && (
+                    <div className="text-center py-12 text-neutral-400 border-2 border-dashed border-neutral-200 rounded-xl">
+                      Nenhuma fase adicionada.<br/>Clique nos botões acima para construir a rotina.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex-shrink-0 px-6 py-4 bg-white border-t border-neutral-200 flex justify-end gap-3">
+          <button onClick={onClose} className="btn-secondary">Cancelar</button>
+          <button onClick={handleSave} disabled={isSaving} className="btn-primary min-w-[140px]">
+            {isSaving ? 'Salvando...' : 'Salvar Rotina'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

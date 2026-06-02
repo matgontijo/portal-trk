@@ -1,7 +1,63 @@
-fastapi
-uvicorn
-sqlalchemy
-requests
-pydantic
-gunicorn
-psycopg2-binary
+# ════════════════════════════════════════════════════════════════
+# Portal TRK — Dependências Python
+# ════════════════════════════════════════════════════════════════
+
+# ─── Framework Web ───
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+gunicorn==23.0.0
+
+# ─── Banco de Dados ───
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+greenlet==3.1.1
+
+# ─── Cache e Broker ───
+redis[hiredis]==5.2.1
+
+# ─── Autenticação e Segurança ───
+pyjwt[crypto]==2.10.1
+bcrypt==4.2.1
+cryptography==44.0.0
+python-multipart==0.0.18
+
+# ─── Validação e Configuração ───
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
+
+# ─── Celery (Tasks Assíncronas) ───
+celery[redis]==5.4.0
+
+# ─── Machine Learning ───
+scikit-learn==1.6.1
+pandas==2.2.3
+numpy==2.2.1
+joblib==1.4.2
+
+# ─── Geração de PDF ───
+weasyprint==63.1
+
+# ─── HTTP Client ───
+httpx==0.28.1
+
+# ─── Web Push ───
+pywebpush==2.0.1
+
+# ─── Google Drive ───
+google-api-python-client==2.159.0
+google-auth==2.37.0
+
+# ─── Logging Estruturado ───
+structlog==24.4.0
+
+# ─── Utilitários ───
+python-dateutil==2.9.0
+pytz==2024.2
+
+# ─── Testes ───
+pytest==8.3.4
+pytest-asyncio==0.25.0
+httpx==0.28.1
+factory-boy==3.3.1
