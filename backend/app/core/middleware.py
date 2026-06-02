@@ -159,11 +159,7 @@ def configurar_middlewares(app: FastAPI) -> None:
     settings = get_settings()
 
     # CORS — deve ser o primeiro middleware
-    origens_permitidas = (
-        [settings.FRONTEND_URL]
-        if settings.is_production
-        else ["http://localhost:5173", "http://localhost:3000"]
-    )
+    origens_permitidas = ["*"]
 
     app.add_middleware(
         CORSMiddleware,

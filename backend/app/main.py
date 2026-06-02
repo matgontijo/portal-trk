@@ -25,6 +25,30 @@ async def lifespan(app: FastAPI):
     """Gerencia startup e shutdown da aplicação."""
     settings = get_settings()
     logger.info("portal_trk_iniciando", environment=settings.ENVIRONMENT)
+    
+    # Auto-seed para deployments manuais no Render
+    try:
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+        from seed import seed
+        from app.db.session import async_session_factory
+        from sqlalchemy import text
+        
+        async with async_session_factory() as db:
+            try:
+                res = await db.execute(text("SELECT COUNT(*) FROM users"))
+                count = res.scalar()
+            except Exception:
+                # Tabelas não existem
+                count = 0
+                
+            if count == 0:
+                logger.info("banco_vazio_iniciando_seed")
+                await seed()
+    except Exception as e:
+        logger.error(f"erro_no_seed: {e}")
+
     yield
     # Shutdown: fechar conexões
     await fechar_redis()
