@@ -38,6 +38,8 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
     rotinaEdit?.blocos ? rotinaEdit.blocos.map((b:any) => ({...b, id: b.id || Math.random().toString()})) : 
     [{ id: 'initial-1', tipo: 'checkbox', label: 'Conferir extrato bancário', is_required: true }]
   )
+  
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,6 +75,19 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
   const removeBloco = (id: string) => {
     setBlocos(blocos.filter(b => b.id !== id))
   }
+
+  const handleDragStart = (idx: number) => setDraggedIdx(idx)
+  
+  const handleDragEnter = (idx: number) => {
+    if (draggedIdx === null || draggedIdx === idx) return
+    const newBlocos = [...blocos]
+    const item = newBlocos.splice(draggedIdx, 1)[0]
+    newBlocos.splice(idx, 0, item)
+    setDraggedIdx(idx)
+    setBlocos(newBlocos)
+  }
+
+  const handleDragEnd = () => setDraggedIdx(null)
 
   const handleSave = async () => {
     if (!nome.trim()) return alert('Dê um nome à rotina.')
@@ -195,61 +210,93 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
 
             {/* Coluna Direita: Builder de Fases (Blocos) */}
             <div className="lg:col-span-2 flex flex-col h-full min-h-[400px]">
-              <div className="bg-white flex-1 p-5 rounded-xl border border-neutral-200 shadow-sm flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-neutral-900">Fases (Checklist)</h3>
-                  <div className="flex gap-2">
-                    <button onClick={() => addBloco('checkbox')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Check"><CheckSquare className="w-3.5 h-3.5"/> Check</button>
-                    <button onClick={() => addBloco('text_short')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Campo de Texto"><Type className="w-3.5 h-3.5"/> Texto</button>
-                    <button onClick={() => addBloco('file_upload')} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1" title="Adicionar Upload/Link"><UploadCloud className="w-3.5 h-3.5"/> Upload</button>
+              <div className="bg-white flex-1 p-6 rounded-xl border border-neutral-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900">Passo a Passo (Fases)</h3>
+                    <p className="text-xs text-neutral-500 mt-1">Arraste os blocos para reordenar. O funcionário deverá preenchê-los na ordem.</p>
                   </div>
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto pr-2">
+                <div className="flex-1 space-y-4 overflow-y-auto pr-2 pb-4">
                   {blocos.map((bloco, idx) => (
-                    <div key={bloco.id} className="flex items-start gap-3 p-4 bg-neutral-50 border border-neutral-200 rounded-xl relative group">
-                      <div className="mt-2 text-neutral-400 cursor-move hover:text-neutral-600 transition-colors">
-                        <GripVertical className="w-5 h-5" />
+                    <div 
+                      key={bloco.id} 
+                      draggable
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragEnter={() => handleDragEnter(idx)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => e.preventDefault()}
+                      className={`flex items-start gap-4 p-5 bg-white border-2 rounded-xl relative group transition-all ${draggedIdx === idx ? 'opacity-40 border-dashed border-neutral-400' : 'border-neutral-200 hover:border-primary-300 shadow-sm'}`}
+                    >
+                      <div className="mt-2 text-neutral-300 cursor-grab active:cursor-grabbing hover:text-primary-500 transition-colors">
+                        <GripVertical className="w-6 h-6" />
                       </div>
                       
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          {bloco.tipo === 'checkbox' && <span className="bg-neutral-200 p-1.5 rounded-md text-neutral-600"><CheckSquare className="w-4 h-4"/></span>}
-                          {bloco.tipo === 'text_short' && <span className="bg-blue-100 p-1.5 rounded-md text-blue-600"><Type className="w-4 h-4"/></span>}
-                          {bloco.tipo === 'file_upload' && <span className="bg-orange-100 p-1.5 rounded-md text-orange-600"><UploadCloud className="w-4 h-4"/></span>}
-                          <span className="text-xs font-bold text-neutral-500 uppercase">Fase {idx + 1}</span>
+                      <div className="flex-1 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {bloco.tipo === 'checkbox' && <span className="bg-slate-100 p-1.5 rounded-lg text-slate-700 shadow-sm"><CheckSquare className="w-4 h-4"/></span>}
+                            {bloco.tipo === 'text_short' && <span className="bg-blue-50 p-1.5 rounded-lg text-blue-600 shadow-sm"><Type className="w-4 h-4"/></span>}
+                            {bloco.tipo === 'file_upload' && <span className="bg-orange-50 p-1.5 rounded-lg text-orange-600 shadow-sm"><UploadCloud className="w-4 h-4"/></span>}
+                            <span className="text-sm font-bold text-neutral-800">
+                              FASE {idx + 1}
+                              <span className="text-xs font-medium text-neutral-400 ml-2 font-normal">
+                                ({bloco.tipo === 'checkbox' ? 'Check' : bloco.tipo === 'text_short' ? 'Texto' : 'Upload'})
+                              </span>
+                            </span>
+                          </div>
+                          <button onClick={() => removeBloco(bloco.id)} className="text-neutral-400 hover:text-red-500 bg-neutral-50 hover:bg-red-50 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                         
                         <input 
                           type="text" 
-                          placeholder="Instrução ou Pergunta desta fase..." 
-                          className="w-full bg-transparent border-b border-neutral-300 px-0 py-1 text-sm font-medium focus:outline-none focus:border-neutral-900 transition-colors"
+                          placeholder="Ex: Verificar se todos os caixas foram fechados..." 
+                          className="w-full bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                           value={bloco.label}
                           onChange={(e) => updateBloco(bloco.id, 'label', e.target.value)}
                         />
                         
-                        <div className="flex items-center justify-between">
-                          <label className="flex items-center gap-2 cursor-pointer">
+                        <div className="flex items-center justify-between pt-1">
+                          <label className="flex items-center gap-2 cursor-pointer group/req">
                             <input 
                               type="checkbox" 
-                              className="accent-neutral-900" 
+                              className="w-4 h-4 accent-primary-600 rounded" 
                               checked={bloco.is_required} 
                               onChange={(e) => updateBloco(bloco.id, 'is_required', e.target.checked)} 
                             />
-                            <span className="text-xs text-neutral-600">Obrigatório</span>
+                            <span className="text-xs font-semibold text-neutral-500 group-hover/req:text-neutral-800 transition-colors">Campo Obrigatório</span>
                           </label>
-                          <button onClick={() => removeBloco(bloco.id)} className="text-neutral-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
                       </div>
                     </div>
                   ))}
                   {blocos.length === 0 && (
-                    <div className="text-center py-12 text-neutral-400 border-2 border-dashed border-neutral-200 rounded-xl">
-                      Nenhuma fase adicionada.<br/>Clique nos botões acima para construir a rotina.
+                    <div className="text-center py-12 text-neutral-400 border-2 border-dashed border-neutral-200 rounded-xl bg-neutral-50/50">
+                      Nenhuma fase adicionada.<br/>Clique nos botões abaixo para construir a rotina.
                     </div>
                   )}
+
+                  {/* Área de Adicionar Novos Blocos */}
+                  <div className="mt-6 pt-6 border-t border-dashed border-neutral-200">
+                    <p className="text-xs font-bold text-neutral-400 uppercase text-center mb-4">Adicionar nova fase</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button onClick={() => addBloco('checkbox')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 transition-all text-slate-700 shadow-sm">
+                        <CheckSquare className="w-5 h-5 text-slate-500"/> 
+                        <span className="text-xs font-semibold">Check</span>
+                      </button>
+                      <button onClick={() => addBloco('text_short')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-blue-200 bg-white hover:border-blue-400 hover:bg-blue-50 transition-all text-blue-700 shadow-sm">
+                        <Type className="w-5 h-5 text-blue-500"/> 
+                        <span className="text-xs font-semibold">Texto</span>
+                      </button>
+                      <button onClick={() => addBloco('file_upload')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-orange-200 bg-white hover:border-orange-400 hover:bg-orange-50 transition-all text-orange-700 shadow-sm">
+                        <UploadCloud className="w-5 h-5 text-orange-500"/> 
+                        <span className="text-xs font-semibold">Upload</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
