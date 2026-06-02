@@ -2,7 +2,7 @@
 # Multi-stage build para imagem otimizada de produção
 # Serve a API via gunicorn com workers uvicorn
 
-FROM python:3.11-slim AS base
+FROM python:3.11-slim-bullseye AS base
 
 # Variáveis de ambiente para Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
