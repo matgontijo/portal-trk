@@ -170,6 +170,92 @@ async def atualizar_progresso(
 
 # ═══ ROTAS GESTOR+ (CRUD de rotinas / builder) ═══
 
+@router.post("/seed", status_code=status.HTTP_201_CREATED)
+async def seed_rotinas_padrao(
+    db: DbSession,
+    current_user=Depends(require_role(["admin", "gestor"])),
+):
+    """Cria rotinas padrão e atribui a todos os funcionários (Apenas Administradores)."""
+    from app.db.models.user import User
+
+    # Verificar se já existem rotinas
+    result = await db.execute(select(Rotina))
+    if result.scalars().first():
+        return {"message": "Rotinas já existem no sistema. Nenhuma ação realizada."}
+
+    # Buscar funcionários
+    result = await db.execute(select(User).where(User.role == "funcionario", User.is_active == True))
+    funcionarios = result.scalars().all()
+
+    rotinas_padrao = [
+        {
+            "nome": "Conciliação Bancária Matinal",
+            "descricao": "Fazer a checagem dos saldos e entradas nos bancos e importar para o Omie.",
+            "dias_semana": [1, 2, 3, 4, 5],
+            "categoria": "banco",
+            "blocos": [
+                {"tipo": "checkbox", "label": "Acessar Banco Santander e exportar OFX", "is_required": True},
+                {"tipo": "checkbox", "label": "Acessar Banco Inter e exportar OFX", "is_required": True},
+                {"tipo": "checkbox", "label": "Acessar Omie e importar os arquivos OFX", "is_required": True},
+                {"tipo": "text_short", "label": "Saldo Final Consolidado (Santander + Inter)", "is_required": True},
+            ]
+        },
+        {
+            "nome": "Checagem de E-mails e Pipefy",
+            "descricao": "Verificar a caixa de entrada geral e atualizar os cards de onboarding no Pipefy.",
+            "dias_semana": [1, 2, 3, 4, 5],
+            "categoria": "pipe",
+            "blocos": [
+                {"tipo": "checkbox", "label": "Responder todos os e-mails urgentes", "is_required": True},
+                {"tipo": "checkbox", "label": "Mover cards concluídos no Pipefy", "is_required": True},
+                {"tipo": "checkbox", "label": "Triagem de novos clientes no Funil", "is_required": False},
+            ]
+        },
+        {
+            "nome": "Relatório Semanal de Fechamento",
+            "descricao": "Organizar os documentos da semana e salvar no Google Drive.",
+            "dias_semana": [5],
+            "categoria": "drive",
+            "blocos": [
+                {"tipo": "checkbox", "label": "Revisar notas fiscais emitidas", "is_required": True},
+                {"tipo": "file_upload", "label": "Link da pasta do Drive com os PDFs", "is_required": True},
+            ]
+        }
+    ]
+
+    for rt_data in rotinas_padrao:
+        rotina = Rotina(
+            nome=rt_data["nome"],
+            descricao=rt_data["descricao"],
+            dias_semana=rt_data["dias_semana"],
+            categoria=rt_data["categoria"],
+            created_by=current_user.id
+        )
+        db.add(rotina)
+        await db.flush()
+
+        for i, bloco_data in enumerate(rt_data["blocos"]):
+            bloco = RotinaBloco(
+                rotina_id=rotina.id,
+                tipo=bloco_data["tipo"],
+                label=bloco_data["label"],
+                is_required=bloco_data["is_required"],
+                posicao=i
+            )
+            db.add(bloco)
+
+        for func in funcionarios:
+            atrib = RotinaAtribuicao(
+                rotina_id=rotina.id,
+                user_id=func.id,
+                assigned_by=current_user.id
+            )
+            db.add(atrib)
+    
+    await db.commit()
+    return {"message": "Rotinas padrão criadas com sucesso!"}
+
+
 
 @router.get("/", response_model=list[RotinaResponse])
 async def listar_rotinas(

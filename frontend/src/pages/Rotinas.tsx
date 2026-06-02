@@ -12,6 +12,7 @@ export function Rotinas() {
   const [rotinas, setRotinas] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   
   const [isBuilderOpen, setIsBuilderOpen] = useState(false)
   const [rotinaEdit, setRotinaEdit] = useState<any>(null)
@@ -83,6 +84,17 @@ export function Rotinas() {
     setIsBuilderOpen(true)
   }
 
+  const handleSeed = async () => {
+    try {
+      setIsLoading(true)
+      await api.post('/rotinas/seed')
+      await carregarRotinas()
+    } catch (e) {
+      alert('Erro ao gerar rotinas padrão')
+      setIsLoading(false)
+    }
+  }
+
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm('Deseja realmente arquivar esta rotina?')) return
@@ -111,18 +123,82 @@ export function Rotinas() {
         </div>
 
         {user?.role !== 'funcionario' && (
-          <button onClick={() => { setRotinaEdit(null); setIsBuilderOpen(true) }} className="btn-primary">
-            Nova Rotina
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Lista
+              </button>
+              <button 
+                onClick={() => setViewMode('calendar')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Grade Semanal
+              </button>
+            </div>
+            <button onClick={() => { setRotinaEdit(null); setIsBuilderOpen(true) }} className="btn-primary">
+              Nova Rotina
+            </button>
+          </div>
         )}
       </div>
 
+      {viewMode === 'calendar' && user?.role !== 'funcionario' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {[
+            { num: 1, nome: 'Segunda-feira' },
+            { num: 2, nome: 'Terça-feira' },
+            { num: 3, nome: 'Quarta-feira' },
+            { num: 4, nome: 'Quinta-feira' },
+            { num: 5, nome: 'Sexta-feira' },
+          ].map(dia => {
+            const rotinasDoDia = rotinas.filter(r => r.dias_semana.includes(dia.num))
+            return (
+              <div key={dia.num} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                <h3 className="font-bold text-center text-slate-700 dark:text-slate-300 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                  {dia.nome}
+                </h3>
+                <div className="space-y-3">
+                  {rotinasDoDia.map(r => {
+                    const coresCategoria = CATEGORIA_CORES[r.categoria] || CATEGORIA_CORES.geral
+                    return (
+                      <div 
+                        key={r.id} 
+                        className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer hover:border-primary-500 transition-colors" 
+                        onClick={(e) => handleEdit(r, e)}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`flex-shrink-0 w-2 h-2 rounded-full ${coresCategoria.dot}`}></div>
+                          <span className="font-semibold text-sm truncate">{r.nome}</span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {r.total_blocos} fases de operação
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {rotinasDoDia.length === 0 && (
+                    <div className="text-center text-xs text-slate-400 py-4">Livre</div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
       <div className="space-y-4">
         {rotinas.length === 0 ? (
-          <div className="card p-12 text-center">
-            <CheckSquare className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhuma rotina</h3>
-            <p className="text-slate-500">Você não tem rotinas atribuídas para hoje.</p>
+          <div className="card p-12 text-center flex flex-col items-center">
+            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhuma rotina configurada</h3>
+            <p className="text-slate-500 mb-6 max-w-md text-center">Você não tem rotinas atribuídas. Organize o trabalho da sua equipe criando checklists diários.</p>
+            {user?.role !== 'funcionario' && (
+              <button onClick={handleSeed} className="btn-secondary">
+                Gerar Rotinas Iniciais Padrão
+              </button>
+            )}
           </div>
         ) : (
           rotinas.map((rotina) => {
@@ -257,6 +333,7 @@ export function Rotinas() {
           })
         )}
       </div>
+      )}
 
       {isBuilderOpen && (
         <RotinaBuilderModal 
