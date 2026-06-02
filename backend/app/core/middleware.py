@@ -158,8 +158,11 @@ def configurar_middlewares(app: FastAPI) -> None:
     """Registra todos os middlewares na aplicação FastAPI na ordem correta."""
     settings = get_settings()
 
-    # CORS — deve ser o primeiro middleware
-    origens_permitidas = ["*"]
+    origens_permitidas = [
+        settings.FRONTEND_URL,
+        "http://localhost:5173",
+        "http://localhost:3000"
+    ]
 
     app.add_middleware(
         CORSMiddleware,
