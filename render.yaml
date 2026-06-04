@@ -13,7 +13,7 @@ services:
   - type: web
     name: portal-trk-api
     runtime: docker
-    repo: https://github.com/seu-usuario/portal-trk
+    repo: https://github.com/matgontijo/portal-trk
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: starter
@@ -71,7 +71,7 @@ services:
   - type: worker
     name: portal-trk-worker
     runtime: docker
-    repo: https://github.com/seu-usuario/portal-trk
+    repo: https://github.com/matgontijo/portal-trk
     dockerfilePath: ./backend/Dockerfile.worker
     dockerContext: ./backend
     plan: starter
@@ -114,7 +114,7 @@ services:
   - type: worker
     name: portal-trk-beat
     runtime: docker
-    repo: https://github.com/seu-usuario/portal-trk
+    repo: https://github.com/matgontijo/portal-trk
     dockerfilePath: ./backend/Dockerfile.worker
     dockerContext: ./backend
     plan: starter
@@ -136,7 +136,7 @@ services:
   - type: web
     name: portal-trk-frontend
     runtime: static
-    repo: https://github.com/seu-usuario/portal-trk
+    repo: https://github.com/matgontijo/portal-trk
     buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: ./frontend/dist
     headers:
