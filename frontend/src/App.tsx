@@ -10,6 +10,7 @@ import { Tarefas } from './pages/Tarefas'
 import { Automacoes } from './pages/Automacoes'
 import { Pipes } from './pages/Pipes'
 import { PipeBoard } from './pages/PipeBoard'
+import { Skills } from './pages/Skills'
 import { Empresas } from './pages/Empresas'
 import { Configuracoes } from './pages/Configuracoes'
 import { Usuarios } from './pages/Usuarios'
@@ -43,6 +44,12 @@ export default function App() {
             <Route path="/pipes" element={<Pipes />} />
             <Route path="/pipes/:id" element={<PipeBoard />} />
             
+            <Route path="/skills" element={
+              <RoleGuard allowedRoles={['admin', 'gestor']}>
+                <Skills />
+              </RoleGuard>
+            } />
+
             <Route path="/automacoes" element={
               <RoleGuard allowedRoles={['admin', 'gestor']}>
                 <Automacoes />

@@ -16,6 +16,7 @@ from app.api.v1.routes import (
     relatorios,
     rotinas,
     saldos,
+    skills,
     tarefas,
     users,
 )
@@ -36,3 +37,4 @@ api_router.include_router(configuracoes.router, prefix="/configuracoes", tags=["
 api_router.include_router(auditoria.router, prefix="/auditoria", tags=["auditoria"])
 api_router.include_router(automacoes.router, prefix="/automacoes", tags=["automações"])
 api_router.include_router(pipes.router, prefix="/pipes", tags=["pipes"])
+api_router.include_router(skills.router, prefix="/skills", tags=["skills"])

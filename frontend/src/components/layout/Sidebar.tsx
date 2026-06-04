@@ -8,6 +8,7 @@ import {
   GitBranch,
   Building2,
   Settings,
+  Sparkles,
   Zap,
   LogOut,
   ChevronLeft
@@ -27,6 +28,7 @@ export function Sidebar() {
     { label: 'Rotinas', path: '/rotinas', icon: CheckSquare, roles: ['admin', 'gestor', 'funcionario'] },
     { label: 'Tarefas', path: '/tarefas', icon: KanbanSquare, roles: ['admin', 'gestor', 'funcionario'] },
     { label: 'Pipes', path: '/pipes', icon: GitBranch, roles: ['admin', 'gestor', 'funcionario'] },
+    { label: 'Skills', path: '/skills', icon: Sparkles, roles: ['admin', 'gestor'] },
     { label: 'Automações', path: '/automacoes', icon: Zap, roles: ['admin', 'gestor'] },
     { label: 'Empresas', path: '/empresas', icon: Building2, roles: ['admin', 'gestor'] },
     { label: 'Usuários', path: '/usuarios', icon: Settings, roles: ['admin', 'gestor'] },
