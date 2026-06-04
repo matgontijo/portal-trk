@@ -4,9 +4,10 @@ import {
   LayoutDashboard, 
   ArrowRightLeft, 
   CheckSquare, 
-  KanbanSquare, 
-  Building2, 
+  KanbanSquare,
+  Building2,
   Settings,
+  Zap,
   LogOut,
   ChevronLeft
 } from 'lucide-react'
@@ -24,6 +25,7 @@ export function Sidebar() {
     { label: 'Conciliação', path: '/conciliacao', icon: ArrowRightLeft, roles: ['admin', 'gestor', 'funcionario'] },
     { label: 'Rotinas', path: '/rotinas', icon: CheckSquare, roles: ['admin', 'gestor', 'funcionario'] },
     { label: 'Tarefas', path: '/tarefas', icon: KanbanSquare, roles: ['admin', 'gestor', 'funcionario'] },
+    { label: 'Automações', path: '/automacoes', icon: Zap, roles: ['admin', 'gestor'] },
     { label: 'Empresas', path: '/empresas', icon: Building2, roles: ['admin', 'gestor'] },
     { label: 'Usuários', path: '/usuarios', icon: Settings, roles: ['admin', 'gestor'] },
     { label: 'Configurações', path: '/config', icon: Settings, roles: ['admin'] },

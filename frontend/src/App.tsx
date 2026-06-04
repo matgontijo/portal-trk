@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Conciliacao } from './pages/Conciliacao'
 import { Rotinas } from './pages/Rotinas'
 import { Tarefas } from './pages/Tarefas'
+import { Automacoes } from './pages/Automacoes'
 import { Empresas } from './pages/Empresas'
 import { Configuracoes } from './pages/Configuracoes'
 import { Usuarios } from './pages/Usuarios'
@@ -36,6 +37,12 @@ export default function App() {
             <Route path="/rotinas" element={<Rotinas />} />
             <Route path="/tarefas" element={<Tarefas />} />
             
+            <Route path="/automacoes" element={
+              <RoleGuard allowedRoles={['admin', 'gestor']}>
+                <Automacoes />
+              </RoleGuard>
+            } />
+
             <Route path="/empresas" element={
               <RoleGuard allowedRoles={['admin', 'gestor']}>
                 <Empresas />
