@@ -1,7 +1,8 @@
 // frontend/src/components/layout/Topbar.tsx
-import { Menu, Bell, Search } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
+import { NotificationsBell } from './NotificationsBell'
 
 export function Topbar() {
   const { user } = useAuthStore()
@@ -35,10 +36,7 @@ export function Topbar() {
 
       {/* Right side: Actions & User */}
       <div className="flex items-center gap-3">
-        <button className="p-2 text-neutral-500 hover:bg-neutral-100 rounded-full transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-        </button>
+        <NotificationsBell />
 
         <div className="h-6 w-px bg-neutral-200 mx-1"></div>
 
