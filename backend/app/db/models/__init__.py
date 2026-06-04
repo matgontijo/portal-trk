@@ -18,6 +18,7 @@ from app.db.models.sync_config import SyncConfig
 from app.db.models.notificacao import Notificacao
 from app.db.models.push_subscription import PushSubscription
 from app.db.models.audit_log import AuditLog
+from app.db.models.automacao import Automacao
 
 __all__ = [
     "User",
@@ -38,4 +39,5 @@ __all__ = [
     "Notificacao",
     "PushSubscription",
     "AuditLog",
+    "Automacao",
 ]

@@ -32,9 +32,19 @@ async def lifespan(app: FastAPI):
         import os
         sys.path.append(os.path.dirname(os.path.dirname(__file__)))
         from seed import seed
-        from app.db.session import async_session_factory
+        from app.db.session import async_session_factory, engine
+        from app.db.base import Base
         from sqlalchemy import text
-        
+        import app.db.models  # noqa: F401 — registra todos os models no metadata
+
+        # Cria tabelas faltantes de forma idempotente (inclui modelos novos
+        # como `automacoes` em bancos já existentes). Nunca remove dados.
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"erro_create_all: {e}")
+
         async with async_session_factory() as db:
             try:
                 res = await db.execute(text("SELECT COUNT(*) FROM users"))

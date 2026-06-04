@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from app.api.v1.routes import (
     auth,
     auditoria,
+    automacoes,
     conciliacao,
     configuracoes,
     dashboard,
@@ -32,3 +33,4 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 api_router.include_router(relatorios.router, prefix="/relatorios", tags=["relatórios"])
 api_router.include_router(configuracoes.router, prefix="/configuracoes", tags=["configurações"])
 api_router.include_router(auditoria.router, prefix="/auditoria", tags=["auditoria"])
+api_router.include_router(automacoes.router, prefix="/automacoes", tags=["automações"])

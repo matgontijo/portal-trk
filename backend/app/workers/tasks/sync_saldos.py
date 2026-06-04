@@ -87,18 +87,31 @@ def sync_empresa_task(empresa_id: str):
 def _sync_empresa_isolado(session, empresa) -> str:
     """Processa UMA empresa em transação isolada.
     Retorna: "ok" | "divergencia" | "erro"."""
+    from app.services.automacoes import disparar
     from app.services.saldo_sync import sincronizar_empresa_sync
 
     try:
         saldo = sincronizar_empresa_sync(session, empresa)
+        contexto = {
+            "empresa_id": empresa.id,
+            "empresa_nome": empresa.nome,
+            "user_id": empresa.responsavel_user_id,
+            "delta": float(saldo.delta),
+            "delta_abs": float(abs(saldo.delta)),
+            "saldo_banco": float(saldo.saldo_banco),
+            "saldo_omie": float(saldo.saldo_omie),
+            "tipo_divergencia": saldo.tipo_divergencia,
+        }
         if saldo.tem_divergencia:
             _notificar_divergencia(session, empresa, saldo)
+            disparar(session, "saldo_divergencia", contexto)
             session.commit()
             logger.info(
                 "sync_empresa_divergencia",
                 empresa=empresa.nome, delta=str(saldo.delta), tipo=saldo.tipo_divergencia,
             )
             return "divergencia"
+        disparar(session, "saldo_atualizado", contexto)
         session.commit()
         logger.info("sync_empresa_ok", empresa=empresa.nome, saldo=str(saldo.saldo_banco))
         return "ok"
@@ -106,6 +119,14 @@ def _sync_empresa_isolado(session, empresa) -> str:
         session.rollback()
         logger.error("sync_empresa_erro", empresa=getattr(empresa, "nome", "?"), erro=str(e))
         _registrar_falha_sync(session, empresa, str(e))
+        try:
+            disparar(session, "saldo_falha", {
+                "empresa_id": empresa.id, "empresa_nome": empresa.nome,
+                "user_id": empresa.responsavel_user_id, "erro": str(e)[:200],
+            })
+            session.commit()
+        except Exception:  # noqa: BLE001
+            session.rollback()
         return "erro"
 
 
