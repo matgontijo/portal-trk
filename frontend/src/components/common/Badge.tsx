@@ -1,5 +1,5 @@
 // frontend/src/components/common/Badge.tsx
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 type BadgeVariant = 'success' | 'warning' | 'danger' | 'primary' | 'default'
 

@@ -1,6 +1,6 @@
 // frontend/src/pages/Rotinas.tsx
 import { useState, useEffect } from 'react'
-import { CheckSquare, Calendar, ChevronDown, ChevronRight, Check, Play, Pause } from 'lucide-react'
+import { Calendar, ChevronDown, ChevronRight, Check, Play, Pause } from 'lucide-react'
 import api from '../services/api'
 import { Badge } from '../components/common/Badge'
 import { useAuthStore } from '../store/authStore'

@@ -1,6 +1,6 @@
 // frontend/src/pages/Configuracoes.tsx
 import { useState, useEffect } from 'react'
-import { Settings, RefreshCw, BrainCircuit, ShieldAlert, Server } from 'lucide-react'
+import { RefreshCw, BrainCircuit, ShieldAlert, Server } from 'lucide-react'
 import api from '../services/api'
 import { Badge } from '../components/common/Badge'
 import { formatarDataHora } from '../utils/formatters'

@@ -1,9 +1,8 @@
 // frontend/src/pages/Tarefas.tsx
 import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { KanbanSquare, Plus, Clock, AlertCircle } from 'lucide-react'
+import { Plus, Clock, AlertCircle } from 'lucide-react'
 import api from '../services/api'
-import { Badge } from '../components/common/Badge'
 import { formatarData } from '../utils/formatters'
 import { PRIORIDADE_CORES } from '../utils/constants'
 

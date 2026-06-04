@@ -29,7 +29,7 @@ export function Conciliacao() {
     }
   }
 
-  const handleDecisao = async (conciliacaoId: string, aceitar: boolean, omitId?: string) => {
+  const handleDecisao = async (conciliacaoId: string, aceitar: boolean) => {
     try {
       // Remover otimisticamente da tela
       setPendentes(prev => prev.filter(c => c.id !== conciliacaoId))

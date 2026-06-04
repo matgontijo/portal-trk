@@ -1,8 +1,7 @@
 // frontend/src/pages/Empresas.tsx
 import { useState, useEffect } from 'react'
-import { Building2, Search, Filter, AlertTriangle, CheckCircle2, ChevronRight, Lock } from 'lucide-react'
+import { Search, Filter, AlertTriangle, CheckCircle2, ChevronRight, Lock } from 'lucide-react'
 import api from '../services/api'
-import { Badge } from '../components/common/Badge'
 import { formatarMoeda, formatarCNPJ, formatarDataHora } from '../utils/formatters'
 import { BANCO_LOGOS } from '../utils/constants'
 
