@@ -14,6 +14,7 @@ import { Empresas } from './pages/Empresas'
 import { Configuracoes } from './pages/Configuracoes'
 import { Usuarios } from './pages/Usuarios'
 import { RoleGuard } from './components/common/RoleGuard'
+import { ToastProvider } from './components/common/Toast'
 
 // React Query Client setup
 const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -69,6 +71,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </ToastProvider>
     </QueryClientProvider>
   )
 }

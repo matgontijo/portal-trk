@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { RefreshCw, CheckCircle2, AlertTriangle, Clock, HelpCircle } from 'lucide-react'
 import api from '../../services/api'
 import { formatarMoeda } from '../../utils/formatters'
+import { useToast } from '../common/Toast'
 
 interface Saldo {
   empresa_id: string
@@ -50,6 +51,7 @@ export function SaldosPanel() {
   const [status, setStatus] = useState<Record<string, SyncStatus>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
+  const { toast } = useToast()
 
   const carregar = useCallback(async () => {
     try {
@@ -74,10 +76,12 @@ export function SaldosPanel() {
     setIsSyncing(true)
     try {
       await api.post('/saldos/sync-todas')
+      toast('Sincronização iniciada — atualizando saldos…', 'info')
       // O sync roda em background (Celery); recarrega após um intervalo.
-      setTimeout(() => { carregar(); setIsSyncing(false) }, 4000)
+      setTimeout(() => { carregar(); setIsSyncing(false); toast('Saldos atualizados', 'success') }, 4000)
     } catch (e) {
       console.error('Erro ao sincronizar:', e)
+      toast('Não foi possível iniciar a sincronização', 'error')
       setIsSyncing(false)
     }
   }

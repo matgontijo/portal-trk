@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { KanbanSquare, Plus, X, ArrowRight } from 'lucide-react'
 import api from '../services/api'
+import { useToast } from '../components/common/Toast'
 
 interface Fase { id: string; nome: string; cor: string }
 interface Pipe { id: string; nome: string; descricao: string | null; cor: string; fases: Fase[] }
@@ -23,6 +24,7 @@ export function Pipes() {
   const [template, setTemplate] = useState('padrao')
   const [salvando, setSalvando] = useState(false)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const carregar = async () => {
     try { setPipes((await api.get<Pipe[]>('/pipes')).data) }
@@ -35,7 +37,7 @@ export function Pipes() {
     try {
       const res = await api.post<Pipe>('/pipes', { nome, usar_template: template })
       setShowForm(false); setNome(''); navigate(`/pipes/${res.data.id}`)
-    } catch (e) { console.error(e); alert('Erro ao criar pipe') } finally { setSalvando(false) }
+    } catch (e) { console.error(e); toast('Erro ao criar pipe', 'error') } finally { setSalvando(false) }
   }
 
   return (

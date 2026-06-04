@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Zap, Plus, Trash2, Power, FlaskConical, X } from 'lucide-react'
 import api from '../services/api'
+import { useToast } from '../components/common/Toast'
 
 interface Automacao {
   id: string
@@ -52,6 +53,7 @@ export function Automacoes() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ ...FORM_INICIAL })
   const [salvando, setSalvando] = useState(false)
+  const { toast } = useToast()
 
   const carregar = async () => {
     try {
@@ -80,7 +82,8 @@ export function Automacoes() {
         condicao, acao_config: montarAcaoConfig(), ativa: true,
       })
       setShowForm(false); setForm({ ...FORM_INICIAL }); carregar()
-    } catch (e) { console.error(e); alert('Erro ao salvar automação') } finally { setSalvando(false) }
+      toast('Automação criada', 'success')
+    } catch (e) { console.error(e); toast('Erro ao salvar automação', 'error') } finally { setSalvando(false) }
   }
 
   const toggle = async (a: Automacao) => {
