@@ -34,7 +34,7 @@ class Pipe(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text, nullable=True)
-    cor: Mapped[str] = mapped_column(String(20), nullable=False, default="#6366f1")
+    cor: Mapped[str] = mapped_column(String(20), nullable=False, default="#171717")
     icone: Mapped[str] = mapped_column(String(40), nullable=False, default="Kanban")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_by: Mapped[uuid.UUID | None] = mapped_column(

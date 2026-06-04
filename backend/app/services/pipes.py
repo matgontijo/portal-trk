@@ -32,23 +32,24 @@ def calcular_sla_status(
 
 
 # ─── Templates de pipe (acelera a criação — estilo "modelos" do Pipefy) ───
+# Cores restritas à paleta da marca: slate (neutro), amber (warning), emerald (success).
 TEMPLATES: dict[str, list[dict]] = {
     "padrao": [
         {"nome": "A Fazer", "ordem": 0, "cor": "#94a3b8"},
-        {"nome": "Em Andamento", "ordem": 1, "cor": "#6366f1", "sla_horas": 48},
-        {"nome": "Concluído", "ordem": 2, "cor": "#22c55e", "is_final": True},
+        {"nome": "Em Andamento", "ordem": 1, "cor": "#f59e0b", "sla_horas": 48},
+        {"nome": "Concluído", "ordem": 2, "cor": "#10b981", "is_final": True},
     ],
     "contas_pagar": [
         {"nome": "Recebido", "ordem": 0, "cor": "#94a3b8"},
         {"nome": "Em Análise", "ordem": 1, "cor": "#f59e0b", "sla_horas": 24},
-        {"nome": "Aprovado", "ordem": 2, "cor": "#3b82f6"},
-        {"nome": "Pago", "ordem": 3, "cor": "#22c55e", "is_final": True},
+        {"nome": "Aprovado", "ordem": 2, "cor": "#475569"},
+        {"nome": "Pago", "ordem": 3, "cor": "#10b981", "is_final": True},
     ],
     "onboarding": [
         {"nome": "Lead", "ordem": 0, "cor": "#94a3b8"},
         {"nome": "Documentação", "ordem": 1, "cor": "#f59e0b", "sla_horas": 72},
-        {"nome": "Configuração", "ordem": 2, "cor": "#6366f1"},
-        {"nome": "Ativo", "ordem": 3, "cor": "#22c55e", "is_final": True},
+        {"nome": "Configuração", "ordem": 2, "cor": "#475569"},
+        {"nome": "Ativo", "ordem": 3, "cor": "#10b981", "is_final": True},
     ],
 }
 
