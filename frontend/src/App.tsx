@@ -8,6 +8,8 @@ import { Conciliacao } from './pages/Conciliacao'
 import { Rotinas } from './pages/Rotinas'
 import { Tarefas } from './pages/Tarefas'
 import { Automacoes } from './pages/Automacoes'
+import { Pipes } from './pages/Pipes'
+import { PipeBoard } from './pages/PipeBoard'
 import { Empresas } from './pages/Empresas'
 import { Configuracoes } from './pages/Configuracoes'
 import { Usuarios } from './pages/Usuarios'
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="/conciliacao" element={<Conciliacao />} />
             <Route path="/rotinas" element={<Rotinas />} />
             <Route path="/tarefas" element={<Tarefas />} />
+            <Route path="/pipes" element={<Pipes />} />
+            <Route path="/pipes/:id" element={<PipeBoard />} />
             
             <Route path="/automacoes" element={
               <RoleGuard allowedRoles={['admin', 'gestor']}>
