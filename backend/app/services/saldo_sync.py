@@ -70,6 +70,7 @@ class SnapshotSaldo:
     raw_bank_json: dict
     raw_omie_json: dict
     extrato: list  # list[LancamentoExtrato]
+    extrato_omie: list  # list[LancamentoErp]
 
 
 async def coletar_snapshot(empresa, referencia: date | None = None) -> SnapshotSaldo:
@@ -85,6 +86,7 @@ async def coletar_snapshot(empresa, referencia: date | None = None) -> SnapshotS
 
     omie = get_omie_provider(empresa, saldo_banco_ref=saldo_bancario.saldo)
     saldo_omie = await omie.obter_saldo_esperado(hoje)
+    extrato_omie = await omie.obter_lancamentos(hoje)
 
     div = classificar_divergencia(saldo_bancario.saldo, saldo_omie, tolerancia)
 
@@ -99,6 +101,7 @@ async def coletar_snapshot(empresa, referencia: date | None = None) -> SnapshotS
         raw_bank_json=saldo_bancario.raw,
         raw_omie_json={"saldo_esperado": str(saldo_omie)},
         extrato=extrato,
+        extrato_omie=extrato_omie,
     )
 
 
@@ -108,7 +111,7 @@ def sincronizar_empresa_sync(session, empresa, referencia: date | None = None):
     Idempotente: um único registro de saldo por (empresa, data_referencia).
     Retorna o objeto Saldo persistido.
     """
-    from app.db.models.lancamento import LancamentoBanco
+    from app.db.models.lancamento import LancamentoBanco, LancamentoOmie
     from app.db.models.saldo import Saldo
 
     snap = asyncio.run(coletar_snapshot(empresa, referencia))
@@ -154,6 +157,35 @@ def sincronizar_empresa_sync(session, empresa, referencia: date | None = None):
                 descricao=lanc.descricao,
                 identificador_banco=lanc.identificador,
                 cnpj_contraparte=lanc.cnpj_contraparte,
+                synced_at=snap.synced_at,
+            )
+        )
+
+    # ─── Persistir lançamentos do Omie (idempotente por id_omie/documento) ───
+    for erp in snap.extrato_omie:
+        filtro = None
+        if erp.id_omie is not None:
+            filtro = LancamentoOmie.id_omie == erp.id_omie
+        elif erp.numero_documento:
+            filtro = LancamentoOmie.numero_documento == erp.numero_documento
+        if filtro is not None:
+            ja_existe = (
+                session.query(LancamentoOmie.id)
+                .filter(LancamentoOmie.empresa_id == empresa.id, filtro)
+                .first()
+            )
+            if ja_existe:
+                continue
+        session.add(
+            LancamentoOmie(
+                empresa_id=empresa.id,
+                data_lancamento=erp.data,
+                data_vencimento=erp.data_vencimento,
+                valor=erp.valor,
+                descricao=erp.descricao,
+                status_omie=erp.status,
+                numero_documento=erp.numero_documento,
+                id_omie=erp.id_omie,
                 synced_at=snap.synced_at,
             )
         )

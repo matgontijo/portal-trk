@@ -17,7 +17,7 @@ import random
 from datetime import date, datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
-from .base import LancamentoExtrato, SaldoBancario
+from .base import LancamentoErp, LancamentoExtrato, SaldoBancario
 
 CENTAVOS = Decimal("0.01")
 
@@ -106,3 +106,35 @@ class FakeOmieProvider:
                 CENTAVOS, rounding=ROUND_HALF_UP
             )
         return self._saldo_banco_ref
+
+    async def obter_lancamentos(self, referencia: date) -> list[LancamentoErp]:
+        """Espelha o extrato bancário do dia (mesma semente) para a conciliação
+        encontrar matches. Omite 1 lançamento para simular um não-conciliado."""
+        rnd = _seed("extrato", self.cnpj, referencia.isoformat(), referencia.isoformat())
+        qtd = rnd.randint(2, 8)  # mesma sequência do FakeBankProvider.obter_extrato
+        descricoes = [
+            "PIX RECEBIDO", "PIX ENVIADO", "TED RECEBIDA", "PAGAMENTO BOLETO",
+            "TARIFA BANCARIA", "TRANSFERENCIA INTERNA", "RECEBIMENTO CLIENTE",
+            "PAGAMENTO FORNECEDOR",
+        ]
+        out: list[LancamentoErp] = []
+        # decide deterministicamente qual índice omitir (ou nenhum, se -1)
+        omitir_idx = _seed("omie_omit", self.cnpj, referencia.isoformat()).randint(-1, qtd - 1)
+        for i in range(qtd):
+            tipo = "credito" if rnd.random() > 0.45 else "debito"
+            valor = _dinheiro(rnd.uniform(120, 85_000))
+            _ = rnd.choice(descricoes)  # mantém a sequência igual à do banco
+            if i == omitir_idx:
+                continue
+            out.append(
+                LancamentoErp(
+                    data=referencia,
+                    valor=valor,
+                    descricao=("Conta a receber" if tipo == "credito" else "Conta a pagar"),
+                    numero_documento=f"OMIE-{self.cnpj[-4:]}-{referencia.isoformat()}-{i}",
+                    id_omie=abs(hash((self.cnpj, referencia.isoformat(), i))) % 10_000_000,
+                    data_vencimento=referencia,
+                    status="aberto",
+                )
+            )
+        return out

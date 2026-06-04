@@ -41,6 +41,20 @@ class LancamentoExtrato:
     raw: dict = field(default_factory=dict)
 
 
+@dataclass(slots=True)
+class LancamentoErp:
+    """Conta a pagar/receber normalizada vinda do ERP (Omie)."""
+
+    data: date
+    valor: Decimal
+    descricao: str = ""
+    numero_documento: str | None = None
+    id_omie: int | None = None
+    data_vencimento: date | None = None
+    status: str | None = None
+    raw: dict = field(default_factory=dict)
+
+
 @runtime_checkable
 class BankProvider(Protocol):
     """Contrato que todo client bancário (real ou fake) deve cumprir."""
@@ -59,3 +73,5 @@ class OmieProvider(Protocol):
     """Contrato para obter a posição de caixa esperada no ERP (Omie)."""
 
     async def obter_saldo_esperado(self, referencia: date) -> Decimal: ...
+
+    async def obter_lancamentos(self, referencia: date) -> list["LancamentoErp"]: ...

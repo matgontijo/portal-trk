@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 
-from app.core.dependencies import DbSession, get_current_user
+from app.core.dependencies import DbSession, get_current_user, require_role
 from app.db.models.conciliacao import Conciliacao
 from app.schemas.conciliacao import (
     ConciliacaoEstatisticas,
@@ -15,6 +15,21 @@ from app.schemas.conciliacao import (
 )
 
 router = APIRouter()
+
+
+@router.post("/executar")
+async def executar_conciliacao(
+    empresa_id: UUID | None = None,
+    current_user=Depends(require_role(["admin", "gestor"])),
+):
+    """Dispara a conciliação automática (todas as empresas ou uma específica)."""
+    if empresa_id:
+        from app.workers.tasks.conciliacao_auto import conciliar_empresa_task
+        conciliar_empresa_task.delay(str(empresa_id))
+    else:
+        from app.workers.tasks.conciliacao_auto import conciliar_todas
+        conciliar_todas.delay()
+    return {"message": "Conciliação iniciada — os resultados aparecerão em instantes"}
 
 
 @router.get("/pendentes", response_model=list[ConciliacaoResponse])

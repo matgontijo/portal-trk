@@ -47,3 +47,20 @@ async def test_fake_omie_determinismo():
     a = await FakeOmieProvider("12345678000199", saldo_ref).obter_saldo_esperado(ref)
     b = await FakeOmieProvider("12345678000199", saldo_ref).obter_saldo_esperado(ref)
     assert a == b
+
+
+async def test_fake_omie_lancamentos_casam_com_extrato_do_banco():
+    """Os lançamentos do Omie usam a mesma semente do extrato bancário,
+    então seus valores são um subconjunto dos valores do banco (permitindo match)."""
+    ref = date(2026, 6, 4)
+    cnpj = "12345678000199"
+    extrato = await FakeBankProvider(cnpj).obter_extrato(ref, ref)
+    erp = await FakeOmieProvider(cnpj, Decimal("100000")).obter_lancamentos(ref)
+
+    valores_banco = sorted(l.valor for l in extrato)
+    valores_omie = sorted(e.valor for e in erp)
+    assert len(erp) <= len(extrato)            # omite ~1 p/ simular não-conciliado
+    for v in valores_omie:
+        assert v in valores_banco              # todo lançamento Omie tem par no banco
+    for e in erp:
+        assert e.id_omie is not None           # idempotência depende disso

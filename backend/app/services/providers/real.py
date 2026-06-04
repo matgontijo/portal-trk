@@ -10,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 
 import structlog
 
-from .base import LancamentoExtrato, SaldoBancario
+from .base import LancamentoErp, LancamentoExtrato, SaldoBancario
 
 logger = structlog.get_logger()
 
@@ -114,6 +114,34 @@ class OmieRealProvider:
         receber = await self._somar(self._client.listar_contas_receber)
         pagar = await self._somar(self._client.listar_contas_pagar)
         return (receber - pagar).quantize(Decimal("0.01"))
+
+    async def obter_lancamentos(self, referencia: date) -> list[LancamentoErp]:
+        """Lista contas a pagar/receber em aberto como lançamentos do ERP."""
+        out: list[LancamentoErp] = []
+        for metodo in (self._client.listar_contas_receber, self._client.listar_contas_pagar):
+            try:
+                resp = await metodo()
+            except Exception as e:  # noqa: BLE001
+                logger.warning("omie_lancamentos_erro", erro=str(e))
+                continue
+            registros = []
+            if isinstance(resp, dict):
+                for chave in ("conta_pagar_cadastro", "conta_receber_cadastro", "lancamentos"):
+                    if isinstance(resp.get(chave), list):
+                        registros = resp[chave]
+                        break
+            for r in registros:
+                out.append(LancamentoErp(
+                    data=_parse_data(_primeiro(r, "data_emissao", "data_previsao", default=referencia.isoformat())),
+                    valor=abs(_to_decimal(_primeiro(r, "valor_documento", "valor", default=0))),
+                    descricao=str(_primeiro(r, "observacao", "categoria", default="")),
+                    numero_documento=str(_primeiro(r, "numero_documento", "numero_titulo", default="") or ""),
+                    id_omie=_primeiro(r, "codigo_lancamento_omie", "codigo_lancamento"),
+                    data_vencimento=_parse_data(_primeiro(r, "data_vencimento", default=referencia.isoformat())),
+                    status=str(_primeiro(r, "status_titulo", default="aberto")),
+                    raw=r,
+                ))
+        return out
 
     @staticmethod
     async def _somar(metodo) -> Decimal:
