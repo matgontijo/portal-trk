@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { DollarSign, AlertTriangle, Clock, Building2, TrendingUp, CheckCircle2 } from 'lucide-react'
 import api from '../services/api'
 import { formatarMoeda } from '../utils/formatters'
+import { SaldosPanel } from '../components/saldos/SaldosPanel'
 import type { DashboardKPIs, EquipeProgresso } from '../types/common'
 
 export function Dashboard() {
@@ -102,6 +103,9 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Saldos bancários do dia (verificação diária) */}
+      <SaldosPanel />
 
       {/* Progresso da Equipe (Rotinas) */}
       <div className="card p-6">
