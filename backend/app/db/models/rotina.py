@@ -23,8 +23,12 @@ class Rotina(Base, TimestampMixin):
     )
     nome: Mapped[str] = mapped_column(String(300), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # Dias da semana: 1=seg, 2=ter, 3=qua, 4=qui, 5=sex
+    # Dias da semana: 1=seg, 2=ter, 3=qua, 4=qui, 5=sex (usado quando recorrência = semanal)
     dias_semana: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=False, default=[])
+    # Recorrência estilo Todoist: diaria | semanal | intervalo | mensal | datas
+    tipo_recorrencia: Mapped[str] = mapped_column(String(20), nullable=False, default="semanal", server_default="semanal")
+    # Config da recorrência (cada_dias, inicio, dias_mes, datas, etc.)
+    recorrencia_config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
     # Alertas exibidos como banners no topo da rotina
     alertas: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=True, default=[])
     categoria: Mapped[str] = mapped_column(

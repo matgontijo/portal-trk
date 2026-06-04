@@ -33,6 +33,18 @@ def _dia_semana_atual() -> int:
     return dia if dia <= 5 else None
 
 
+def _rec_fields(rotina) -> dict:
+    """Campos de recorrência para a resposta (tipo, config e texto amigável)."""
+    from app.services.recorrencia import descrever_recorrencia
+    tipo = getattr(rotina, "tipo_recorrencia", "semanal") or "semanal"
+    cfg = getattr(rotina, "recorrencia_config", {}) or {}
+    return {
+        "tipo_recorrencia": tipo,
+        "recorrencia_config": cfg,
+        "recorrencia_texto": descrever_recorrencia(tipo, cfg, rotina.dias_semana),
+    }
+
+
 @router.get("/hoje", response_model=list[RotinaResponse])
 async def rotinas_do_dia(
     db: DbSession,
@@ -44,26 +56,35 @@ async def rotinas_do_dia(
     Se não informar dia, usa o dia atual.
     Inclui progresso de cada bloco para a data de hoje.
     """
-    dia_semana = dia or _dia_semana_atual()
-    if dia_semana is None:
-        return []  # Fim de semana
-
     hoje = date.today()
+    dia_preview = dia  # opcional: prévia de rotinas semanais por dia (1..5)
 
-    # Buscar rotinas atribuídas ao usuário para o dia
+    # Buscar TODAS as rotinas ativas atribuídas ao usuário (filtro de recorrência é em Python)
     query = (
         select(Rotina)
         .join(RotinaAtribuicao)
         .where(
             RotinaAtribuicao.user_id == current_user.id,
             Rotina.status == "ativa",
-            Rotina.dias_semana.any(dia_semana),
         )
         .options(selectinload(Rotina.blocos), selectinload(Rotina.atribuicoes))
         .order_by(Rotina.nome)
     )
     result = await db.execute(query)
-    rotinas = result.scalars().unique().all()
+    todas = result.scalars().unique().all()
+
+    # Filtra pela recorrência estilo Todoist (lógica pura/testável)
+    from app.services.recorrencia import rotina_ocorre_em
+    rotinas = [
+        r for r in todas
+        if rotina_ocorre_em(
+            getattr(r, "tipo_recorrencia", "semanal"),
+            getattr(r, "recorrencia_config", {}) or {},
+            r.dias_semana,
+            hoje,
+            dia_preview=dia_preview,
+        )
+    ]
 
     # Buscar progresso do dia para todos os blocos do usuário
     bloco_ids = [b.id for r in rotinas for b in r.blocos]
@@ -111,6 +132,7 @@ async def rotinas_do_dia(
             total_blocos=len(rotina.blocos),
             blocos_concluidos=concluidos,
             created_at=rotina.created_at,
+            **_rec_fields(rotina),
         ))
 
     return respostas
@@ -277,6 +299,7 @@ async def listar_rotinas(
             blocos=[BlocoResponse.model_validate(b) for b in r.blocos],
             total_blocos=len(r.blocos), blocos_concluidos=0,
             created_at=r.created_at,
+            **_rec_fields(r),
         )
         for r in rotinas
     ]
@@ -293,6 +316,8 @@ async def criar_rotina(
         nome=dados.nome,
         descricao=dados.descricao,
         dias_semana=dados.dias_semana,
+        tipo_recorrencia=dados.tipo_recorrencia,
+        recorrencia_config=dados.recorrencia_config or {},
         alertas=dados.alertas,
         categoria=dados.categoria,
         created_by=current_user.id,
@@ -330,6 +355,7 @@ async def criar_rotina(
         categoria=rotina.categoria, status=rotina.status,
         blocos=[], total_blocos=len(dados.blocos), blocos_concluidos=0,
         created_at=rotina.created_at,
+        **_rec_fields(rotina),
     )
 
 
@@ -385,6 +411,7 @@ async def atualizar_rotina(
         categoria=rotina.categoria, status=rotina.status,
         blocos=[], total_blocos=0, blocos_concluidos=0,
         created_at=rotina.created_at,
+        **_rec_fields(rotina),
     )
 
 

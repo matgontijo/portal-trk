@@ -27,7 +27,15 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
   const [descricao, setDescricao] = useState(rotinaEdit?.descricao || '')
   const [categoria, setCategoria] = useState(rotinaEdit?.categoria || 'geral')
   const [diasSemana, setDiasSemana] = useState<number[]>(rotinaEdit?.dias_semana || [1, 2, 3, 4, 5]) // Seg a Sex padrão
-  
+
+  // Recorrência estilo Todoist
+  const [tipoRecorrencia, setTipoRecorrencia] = useState<string>(rotinaEdit?.tipo_recorrencia || 'semanal')
+  const recCfgInit = rotinaEdit?.recorrencia_config || {}
+  const [cadaDias, setCadaDias] = useState<number>(recCfgInit.cada_dias || 2)
+  const [diasMes, setDiasMes] = useState<string>((recCfgInit.dias_mes || []).join(', '))
+  const [ultimoDia, setUltimoDia] = useState<boolean>(!!recCfgInit.ultimo_dia)
+  const [apenasUteis, setApenasUteis] = useState<boolean>(!!recCfgInit.apenas_dias_uteis)
+
   // Array de IDs selecionados
   const [userIds, setUserIds] = useState<string[]>(
     rotinaEdit?.atribuicoes ? rotinaEdit.atribuicoes.map((a:any) => a.user_id) : []
@@ -91,16 +99,26 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
 
   const handleSave = async () => {
     if (!nome.trim()) return alert('Dê um nome à rotina.')
-    if (diasSemana.length === 0) return alert('Selecione pelo menos um dia da semana.')
+    if (tipoRecorrencia === 'semanal' && diasSemana.length === 0) return alert('Selecione pelo menos um dia da semana.')
     if (userIds.length === 0) return alert('Atribua a pelo menos um funcionário.')
     if (blocos.length === 0 || blocos.some(b => !b.label.trim())) return alert('Todos os blocos precisam de um título.')
 
     setIsSaving(true)
     try {
+      const recorrencia_config: Record<string, unknown> = {}
+      if (tipoRecorrencia === 'diaria' && apenasUteis) recorrencia_config.apenas_dias_uteis = true
+      if (tipoRecorrencia === 'intervalo') recorrencia_config.cada_dias = cadaDias
+      if (tipoRecorrencia === 'mensal') {
+        if (ultimoDia) recorrencia_config.ultimo_dia = true
+        else recorrencia_config.dias_mes = diasMes.split(',').map(s => Number(s.trim())).filter(n => n >= 1 && n <= 31)
+      }
+
       const payload = {
         nome,
         descricao,
         dias_semana: diasSemana,
+        tipo_recorrencia: tipoRecorrencia,
+        recorrencia_config,
         categoria,
         user_ids: userIds,
         alertas: [],
@@ -173,18 +191,64 @@ export function RotinaBuilderModal({ onClose, onSave, rotinaEdit }: RotinaBuilde
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-2">Dias de Repetição</label>
-                  <div className="flex flex-wrap gap-2">
-                    {['Seg', 'Ter', 'Qua', 'Qui', 'Sex'].map((d, i) => {
-                      const diaInt = i + 1
-                      const isSel = diasSemana.includes(diaInt)
-                      return (
-                        <button key={d} onClick={() => toggleDia(diaInt)} className={`w-9 h-9 rounded-full text-xs font-bold transition-colors ${isSel ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
-                          {d}
-                        </button>
-                      )
-                    })}
+                  <label className="block text-xs font-semibold text-neutral-600 uppercase mb-2">Recorrência</label>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {[
+                      { id: 'diaria', label: 'Diária' },
+                      { id: 'semanal', label: 'Semanal' },
+                      { id: 'intervalo', label: 'A cada X dias' },
+                      { id: 'mensal', label: 'Mensal' },
+                    ].map(opt => (
+                      <button key={opt.id} onClick={() => setTipoRecorrencia(opt.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${tipoRecorrencia === opt.id ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
+
+                  {tipoRecorrencia === 'semanal' && (
+                    <div className="flex flex-wrap gap-2">
+                      {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d, i) => {
+                        const diaInt = i + 1
+                        const isSel = diasSemana.includes(diaInt)
+                        return (
+                          <button key={d} onClick={() => toggleDia(diaInt)} className={`w-9 h-9 rounded-full text-xs font-bold transition-colors ${isSel ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'}`}>
+                            {d}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {tipoRecorrencia === 'diaria' && (
+                    <label className="flex items-center gap-2 text-sm text-neutral-600">
+                      <input type="checkbox" checked={apenasUteis} onChange={e => setApenasUteis(e.target.checked)} />
+                      Apenas dias úteis (seg–sex)
+                    </label>
+                  )}
+
+                  {tipoRecorrencia === 'intervalo' && (
+                    <div className="flex items-center gap-2 text-sm text-neutral-600">
+                      Repetir a cada
+                      <input type="number" min={1} value={cadaDias} onChange={e => setCadaDias(Number(e.target.value))} className="input w-20 py-1.5" />
+                      dia(s)
+                    </div>
+                  )}
+
+                  {tipoRecorrencia === 'mensal' && (
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm text-neutral-600">
+                        <input type="checkbox" checked={ultimoDia} onChange={e => setUltimoDia(e.target.checked)} />
+                        Todo último dia do mês
+                      </label>
+                      {!ultimoDia && (
+                        <div className="text-sm text-neutral-600">
+                          Dias do mês (ex.: 1, 15):
+                          <input value={diasMes} onChange={e => setDiasMes(e.target.value)} placeholder="1, 15" className="input mt-1 py-1.5" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

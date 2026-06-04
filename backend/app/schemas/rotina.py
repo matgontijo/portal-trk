@@ -26,7 +26,9 @@ class RotinaCreate(BaseModel):
     """Criação de nova rotina (gestor+)."""
     nome: str
     descricao: str | None = None
-    dias_semana: list[int]
+    dias_semana: list[int] = []
+    tipo_recorrencia: Literal["diaria", "semanal", "intervalo", "mensal", "datas"] = "semanal"
+    recorrencia_config: dict = {}
     alertas: list[str] = []
     categoria: Literal["banco", "omie", "drive", "urgente", "pipe", "geral"] = "geral"
     blocos: list[BlocoConfig] = []
@@ -36,8 +38,8 @@ class RotinaCreate(BaseModel):
     @classmethod
     def validar_dias(cls, v: list[int]) -> list[int]:
         for dia in v:
-            if dia < 1 or dia > 5:
-                raise ValueError("Dias da semana devem ser entre 1 (seg) e 5 (sex)")
+            if dia < 1 or dia > 7:
+                raise ValueError("Dias da semana devem ser entre 1 (seg) e 7 (dom)")
         return sorted(set(v))
 
 
@@ -46,6 +48,8 @@ class RotinaUpdate(BaseModel):
     nome: str | None = None
     descricao: str | None = None
     dias_semana: list[int] | None = None
+    tipo_recorrencia: Literal["diaria", "semanal", "intervalo", "mensal", "datas"] | None = None
+    recorrencia_config: dict | None = None
     alertas: list[str] | None = None
     categoria: Literal["banco", "omie", "drive", "urgente", "pipe", "geral"] | None = None
     status: Literal["ativa", "pausada", "arquivada"] | None = None
@@ -94,6 +98,9 @@ class RotinaResponse(BaseModel):
     nome: str
     descricao: str | None
     dias_semana: list[int]
+    tipo_recorrencia: str = "semanal"
+    recorrencia_config: dict = {}
+    recorrencia_texto: str = ""
     alertas: list[str]
     categoria: str
     status: str

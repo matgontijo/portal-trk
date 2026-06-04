@@ -42,6 +42,14 @@ async def lifespan(app: FastAPI):
         try:
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+                # Patches aditivos de colunas (create_all não altera tabelas
+                # existentes). ADD COLUMN IF NOT EXISTS é idempotente no Postgres.
+                from sqlalchemy import text as _sql
+                for ddl in (
+                    "ALTER TABLE rotinas ADD COLUMN IF NOT EXISTS tipo_recorrencia VARCHAR(20) NOT NULL DEFAULT 'semanal'",
+                    "ALTER TABLE rotinas ADD COLUMN IF NOT EXISTS recorrencia_config JSONB NOT NULL DEFAULT '{}'",
+                ):
+                    await conn.execute(_sql(ddl))
         except Exception as e:  # noqa: BLE001
             logger.error(f"erro_create_all: {e}")
 
