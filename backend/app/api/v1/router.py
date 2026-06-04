@@ -12,6 +12,7 @@ from app.api.v1.routes import (
     dashboard,
     empresas,
     notificacoes,
+    pipes,
     relatorios,
     rotinas,
     saldos,
@@ -34,3 +35,4 @@ api_router.include_router(relatorios.router, prefix="/relatorios", tags=["relat�
 api_router.include_router(configuracoes.router, prefix="/configuracoes", tags=["configurações"])
 api_router.include_router(auditoria.router, prefix="/auditoria", tags=["auditoria"])
 api_router.include_router(automacoes.router, prefix="/automacoes", tags=["automações"])
+api_router.include_router(pipes.router, prefix="/pipes", tags=["pipes"])

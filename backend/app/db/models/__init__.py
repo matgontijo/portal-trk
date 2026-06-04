@@ -19,6 +19,9 @@ from app.db.models.notificacao import Notificacao
 from app.db.models.push_subscription import PushSubscription
 from app.db.models.audit_log import AuditLog
 from app.db.models.automacao import Automacao
+from app.db.models.pipe import (
+    Pipe, PipeFase, PipeCampo, PipeCard, PipeCardHistorico,
+)
 
 __all__ = [
     "User",
@@ -40,4 +43,9 @@ __all__ = [
     "PushSubscription",
     "AuditLog",
     "Automacao",
+    "Pipe",
+    "PipeFase",
+    "PipeCampo",
+    "PipeCard",
+    "PipeCardHistorico",
 ]
