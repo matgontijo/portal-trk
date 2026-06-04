@@ -1,12 +1,17 @@
 # backend/app/workers/tasks/sync_saldos.py
-# Task Celery para sincronização de saldos bancários.
+# Task Celery para sincronização e VERIFICAÇÃO de saldos bancários.
 # Executa nos horários configurados (padrão 06:00 e 20:00 BRT).
-# Para cada empresa: autentica no banco, busca saldo e extrato,
-# salva em saldos e lancamentos_banco, calcula divergência.
+#
+# Para cada empresa:
+#   1. Coleta saldo no banco (real ou simulado) + posição no Omie.
+#   2. Classifica divergência e grava 1 snapshot/dia (idempotente).
+#   3. Persiste o extrato do dia.
+#   4. Notifica o responsável quando há divergência ou falha de sync.
+#
+# Resiliência: cada empresa é processada e COMMITADA isoladamente — a falha
+# de uma (ou de um banco) nunca derruba as demais.
 
-import asyncio
 from datetime import date, datetime, timezone
-from decimal import Decimal
 
 import structlog
 
@@ -30,23 +35,30 @@ def _get_db_session():
 def sync_todas_empresas(self):
     """Sincroniza saldos de todas as empresas ativas."""
     session = _get_db_session()
+    sucesso = 0
+    falhas = 0
+    divergencias = 0
     try:
         from app.db.models.empresa import Empresa
-        empresas = session.query(Empresa).filter(Empresa.is_active == True).all()
-
+        empresas = session.query(Empresa).filter(Empresa.is_active == True).all()  # noqa: E712
         logger.info("sync_iniciado", total_empresas=len(empresas))
 
         for empresa in empresas:
-            try:
-                _sync_empresa(session, empresa)
-            except Exception as e:
-                logger.error("sync_empresa_erro", empresa=empresa.nome, erro=str(e))
+            resultado = _sync_empresa_isolado(session, empresa)
+            if resultado == "erro":
+                falhas += 1
+            else:
+                sucesso += 1
+                if resultado == "divergencia":
+                    divergencias += 1
 
-        session.commit()
-        logger.info("sync_concluido", total_empresas=len(empresas))
+        logger.info(
+            "sync_concluido",
+            sucesso=sucesso, falhas=falhas, divergencias=divergencias,
+        )
+        return {"sucesso": sucesso, "falhas": falhas, "divergencias": divergencias}
 
-    except Exception as e:
-        session.rollback()
+    except Exception as e:  # erro estrutural (ex.: banco indisponível) -> retry
         logger.error("sync_erro_geral", erro=str(e))
         raise self.retry(exc=e, countdown=60)
     finally:
@@ -55,41 +67,85 @@ def sync_todas_empresas(self):
 
 @celery.task(name="app.workers.tasks.sync_saldos.sync_empresa_task")
 def sync_empresa_task(empresa_id: str):
-    """Sync manual de uma empresa específica."""
+    """Sync manual de uma empresa específica (disparado pela UI)."""
+    from uuid import UUID
+    from app.db.models.empresa import Empresa
+
     session = _get_db_session()
     try:
-        from app.db.models.empresa import Empresa
-        from uuid import UUID
         empresa = session.query(Empresa).filter(Empresa.id == UUID(empresa_id)).first()
-        if empresa:
-            _sync_empresa(session, empresa)
-            session.commit()
-            logger.info("sync_manual_concluido", empresa=empresa.nome)
-    except Exception as e:
-        session.rollback()
-        logger.error("sync_manual_erro", empresa_id=empresa_id, erro=str(e))
+        if not empresa:
+            logger.warning("sync_manual_empresa_inexistente", empresa_id=empresa_id)
+            return {"status": "nao_encontrada"}
+        resultado = _sync_empresa_isolado(session, empresa)
+        logger.info("sync_manual_concluido", empresa=empresa.nome, resultado=resultado)
+        return {"status": resultado}
     finally:
         session.close()
 
 
-def _sync_empresa(session, empresa):
-    """Lógica de sync de uma empresa individual."""
-    from app.db.models.saldo import Saldo
+def _sync_empresa_isolado(session, empresa) -> str:
+    """Processa UMA empresa em transação isolada.
+    Retorna: "ok" | "divergencia" | "erro"."""
+    from app.services.saldo_sync import sincronizar_empresa_sync
 
-    hoje = date.today()
-    agora = datetime.now(timezone.utc)
+    try:
+        saldo = sincronizar_empresa_sync(session, empresa)
+        if saldo.tem_divergencia:
+            _notificar_divergencia(session, empresa, saldo)
+            session.commit()
+            logger.info(
+                "sync_empresa_divergencia",
+                empresa=empresa.nome, delta=str(saldo.delta), tipo=saldo.tipo_divergencia,
+            )
+            return "divergencia"
+        session.commit()
+        logger.info("sync_empresa_ok", empresa=empresa.nome, saldo=str(saldo.saldo_banco))
+        return "ok"
+    except Exception as e:  # noqa: BLE001
+        session.rollback()
+        logger.error("sync_empresa_erro", empresa=getattr(empresa, "nome", "?"), erro=str(e))
+        _registrar_falha_sync(session, empresa, str(e))
+        return "erro"
 
-    # Placeholder: em produção, chamar API bancária real
-    # Por enquanto, cria registro com saldo zero para demonstrar o fluxo
-    saldo = Saldo(
-        empresa_id=empresa.id,
-        saldo_banco=Decimal("0.00"),
-        saldo_omie=Decimal("0.00"),
-        delta=Decimal("0.00"),
-        tem_divergencia=False,
-        tipo_divergencia="sem_divergencia",
-        data_referencia=hoje,
-        synced_at=agora,
+
+def _notificar_divergencia(session, empresa, saldo) -> None:
+    """Cria notificação in-app para o responsável da empresa."""
+    if not empresa.responsavel_user_id:
+        return
+    from app.db.models.notificacao import Notificacao
+
+    sinal = "acima" if saldo.delta > 0 else "abaixo"
+    valor = abs(saldo.delta)
+    session.add(
+        Notificacao(
+            user_id=empresa.responsavel_user_id,
+            tipo="divergencia",
+            titulo=f"Divergência de saldo · {empresa.nome}",
+            mensagem=(
+                f"Saldo do banco está R$ {valor:,.2f} {sinal} da posição do Omie "
+                f"({saldo.tipo_divergencia.replace('_', ' ')}). Verifique a conciliação."
+            ),
+            link_acao=f"/conciliacao?empresa={empresa.id}",
+        )
     )
-    session.add(saldo)
-    logger.info("sync_empresa_ok", empresa=empresa.nome)
+
+
+def _registrar_falha_sync(session, empresa, erro: str) -> None:
+    """Notifica o responsável quando o sync de uma empresa falha."""
+    if not empresa.responsavel_user_id:
+        return
+    try:
+        from app.db.models.notificacao import Notificacao
+        session.add(
+            Notificacao(
+                user_id=empresa.responsavel_user_id,
+                tipo="sistema",
+                titulo=f"Falha ao atualizar saldo · {empresa.nome}",
+                mensagem=f"Não foi possível obter o saldo hoje: {erro[:200]}",
+                link_acao=f"/empresas?empresa={empresa.id}",
+            )
+        )
+        session.commit()
+    except Exception:  # noqa: BLE001 — notificação é best-effort
+        session.rollback()

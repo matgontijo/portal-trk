@@ -1,15 +1,17 @@
 # backend/app/api/v1/routes/saldos.py
 # Rotas de saldos bancários do Portal TRK.
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from app.core.config import get_settings
 from app.core.dependencies import DbSession, get_current_user, require_role
+from app.db.models.empresa import Empresa
 from app.db.models.saldo import Saldo
-from app.schemas.saldo import SaldoHistorico, SaldoResponse
+from app.schemas.saldo import SaldoHistorico, SaldoResponse, SyncStatus
 
 router = APIRouter()
 
@@ -82,6 +84,73 @@ async def historico_saldo(
         )
         for s in saldos
     ]
+
+
+@router.get("/status", response_model=list[SyncStatus])
+async def status_sync(
+    db: DbSession,
+    current_user=Depends(get_current_user),
+):
+    """Saúde do sync de saldo por empresa (para o painel de monitoramento).
+
+    status: "ok" (saldo de hoje, sem divergência) | "divergencia" |
+            "desatualizado" (último sync velho demais) | "pendente" (nunca sincronizou).
+    """
+    settings = get_settings()
+    stale_horas = getattr(settings, "BANK_SALDO_STALE_HORAS", 26)
+    agora = datetime.now(timezone.utc)
+
+    # Último saldo de cada empresa
+    subq = (
+        select(Saldo.empresa_id, func.max(Saldo.synced_at).label("max_sync"))
+        .group_by(Saldo.empresa_id)
+        .subquery()
+    )
+    result = await db.execute(
+        select(Saldo).join(
+            subq,
+            (Saldo.empresa_id == subq.c.empresa_id) & (Saldo.synced_at == subq.c.max_sync),
+        )
+    )
+    ultimos = {s.empresa_id: s for s in result.scalars().all()}
+
+    empresas = (await db.execute(select(Empresa).where(Empresa.is_active == True))).scalars().all()  # noqa: E712
+
+    out: list[SyncStatus] = []
+    for emp in empresas:
+        saldo = ultimos.get(emp.id)
+        if saldo is None:
+            status, msg = "pendente", "Nunca sincronizado"
+        else:
+            horas = (agora - saldo.synced_at).total_seconds() / 3600
+            if horas > stale_horas:
+                status = "desatualizado"
+                msg = f"Último sync há {int(horas)}h"
+            elif saldo.tem_divergencia:
+                status = "divergencia"
+                msg = f"Divergência de R$ {abs(saldo.delta):,.2f}"
+            else:
+                status, msg = "ok", "Atualizado"
+        out.append(
+            SyncStatus(
+                empresa_id=emp.id,
+                empresa_nome=emp.nome,
+                ultimo_sync=saldo.synced_at if saldo else None,
+                status=status,
+                mensagem=msg,
+            )
+        )
+    return out
+
+
+@router.post("/sync-todas")
+async def sync_todas(
+    current_user=Depends(require_role(["admin", "gestor"])),
+):
+    """Dispara o sync imediato de TODAS as empresas ativas."""
+    from app.workers.tasks.sync_saldos import sync_todas_empresas
+    sync_todas_empresas.delay()
+    return {"message": "Sync de todas as empresas iniciado"}
 
 
 @router.post("/{empresa_id}/sync")

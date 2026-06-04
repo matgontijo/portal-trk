@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     OMIE_BASE_URL: str = "https://app.omie.com.br/api/v1"
 
     # ─── Bancos ───
+    # Modo dos provedores de saldo:
+    #   "fake" = sempre simulado (demo/dev) | "real" = sempre API real |
+    #   "auto" = real quando a empresa tem credenciais, senão simulado.
+    BANK_PROVIDER_MODE: Literal["fake", "real", "auto"] = "auto"
+    # Tolerância (R$) abaixo da qual a diferença banco×Omie NÃO é divergência.
+    BANK_DIVERGENCIA_TOLERANCIA: str = "0.05"
+    # Horas após as quais um saldo é considerado "desatualizado" no status.
+    BANK_SALDO_STALE_HORAS: int = 26
     INTER_BASE_URL: str = "https://cdpj.partners.bancointer.com.br"
     SANTANDER_BASE_URL: str = "https://trust-open.api.santander.com.br"
     SANTANDER_CERT_PATH: str = ""
