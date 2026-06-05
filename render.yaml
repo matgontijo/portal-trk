@@ -1,45 +1,20 @@
-# render.yaml — TRK OS no Render (reaproveita os serviços existentes do portal-trk).
-# Sem Redis/Worker/Beat — o app novo não depende deles.
-# Os serviços antigos portal-trk-worker / -beat / -redis podem ser excluídos no painel.
-
-# Banco NOVO e limpo (o portal-trk-db antigo fica intacto, com o schema antigo).
-databases:
-  - name: trk-os-db
-    plan: free
-    databaseName: trk_os
+# render.yaml — TRK OS no Render (SERVIÇO ÚNICO).
+# O backend builda e serve o frontend na mesma origem: 1 URL, sem CORS,
+# sem configurar URL de API, sem Postgres/Redis/Worker.
+#
+# Após sincronizar este Blueprint, o app inteiro fica em portal-trk.onrender.com.
+# Os serviços antigos (portal-trk-ui, -worker, -beat, -redis, -db) podem ser excluídos.
 
 services:
-  # ─── API (FastAPI / TRK OS) ───
   - type: web
-    name: portal-trk-api
+    name: portal-trk
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     healthCheckPath: /health
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: trk-os-db
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
-      - key: FRONTEND_URL
-        value: "*"
-
-  # ─── Frontend (React SPA estática) ───
-  - type: web
-    name: portal-trk-frontend
-    runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: ./frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: NODE_VERSION
-        value: "20"
-      # URL pública da API (ajuste se o nome do serviço for outro):
-      - key: VITE_API_URL
-        value: https://portal-trk-api.onrender.com/api
+      # Banco: SQLite embutido (efêmero no plano free — re-semeia no boot).
+      # Para dados persistentes depois, troque por um Postgres e sete DATABASE_URL.

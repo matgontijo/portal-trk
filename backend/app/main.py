@@ -2,8 +2,12 @@
 # TRK OS — Sistema Operacional do Grupo TRK.
 # App novo, zero-dependência de infra para rodar (SQLite). Permissões por setor.
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import config
 from .db import Base, SessionLocal, engine
@@ -45,6 +49,22 @@ def criar_app() -> FastAPI:
     app.include_router(automacoes.router, prefix="/api/automacoes", tags=["automacoes"])
     app.include_router(skills.router, prefix="/api/skills", tags=["skills"])
     app.include_router(empresas.router, prefix="/api/empresas", tags=["empresas"])
+
+    # ─── Serve o frontend (SPA) na mesma origem, se o build existir ───
+    static_dir = os.getenv("STATIC_DIR", "static")
+    if os.path.isdir(static_dir):
+        assets = os.path.join(static_dir, "assets")
+        if os.path.isdir(assets):
+            app.mount("/assets", StaticFiles(directory=assets), name="assets")
+
+        @app.get("/{full_path:path}")
+        def spa(full_path: str):
+            # Arquivos reais (favicon, etc.); senão devolve o index.html (rotas do React)
+            candidato = os.path.join(static_dir, full_path)
+            if full_path and os.path.isfile(candidato):
+                return FileResponse(candidato)
+            return FileResponse(os.path.join(static_dir, "index.html"))
+
     return app
 
 

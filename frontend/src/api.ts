@@ -1,8 +1,10 @@
 import axios from 'axios'
 
-// Dev: usa o proxy do Vite (/api). Produção: VITE_API_URL aponta para a API.
-const baseURL = import.meta.env.VITE_API_URL || '/api'
-const api = axios.create({ baseURL, timeout: 20000 })
+// Serviço único: o backend serve o frontend => '/api' relativo (mesma origem).
+// Se VITE_API_URL vier setado, garante que termine em '/api'.
+let baseURL = import.meta.env.VITE_API_URL || '/api'
+if (!baseURL.endsWith('/api')) baseURL = baseURL.replace(/\/+$/, '') + '/api'
+const api = axios.create({ baseURL, timeout: 30000 })
 
 api.interceptors.request.use((cfg) => {
   const token = localStorage.getItem('trk_token')
