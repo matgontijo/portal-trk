@@ -1,203 +1,200 @@
-// frontend/src/pages/Usuarios.tsx
-import { useState, useEffect } from 'react'
-import { Plus, Mail, Shield, Trash2, X } from 'lucide-react'
-import api from '../services/api'
-import { Badge } from '../components/common/Badge'
-import { useAuthStore } from '../store/authStore'
-import type { User, UserRole } from '../types/auth'
-import { formatarDataHora } from '../utils/formatters'
+import { useEffect, useState, useCallback } from 'react'
+import { UserPlus, Save, Eye, Pencil, ShieldCheck, Lock, Check, X, Loader2 } from 'lucide-react'
+import api from '../api'
+import { useAuth } from '../store/auth'
+import { Icon } from '../icons'
+import type { Usuario, Modulo, PermMap, Departamento } from '../types'
 
 export function Usuarios() {
-  const { user } = useAuthStore()
-  const [usuarios, setUsuarios] = useState<User[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'funcionario' as UserRole, sector: '' })
-  const [isSaving, setIsSaving] = useState(false)
+  const { pode } = useAuth()
+  const editavel = pode('usuarios', 'editar')
+  const [users, setUsers] = useState<Usuario[]>([])
+  const [sel, setSel] = useState<string | null>(null)
+  const [novo, setNovo] = useState(false)
 
-  useEffect(() => {
-    carregarUsuarios()
-  }, [])
-
-  const carregarUsuarios = async () => {
-    try {
-      const response = await api.get('/users')
-      setUsuarios(response.data)
-    } catch (error) {
-      console.error('Erro ao carregar usuários', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
-    try {
-      await api.post('/users', formData)
-      setIsModalOpen(false)
-      setFormData({ name: '', email: '', password: '', role: 'funcionario', sector: '' })
-      carregarUsuarios()
-    } catch (error: any) {
-      const detail = error.response?.data?.detail
-      if (Array.isArray(detail)) {
-        const msgs = detail.map((err: any) => {
-          // Remove o prefixo "Value error, " que o Pydantic adiciona
-          return err.msg.replace('Value error, ', '')
-        })
-        alert(msgs.join('\n'))
-      } else {
-        alert(detail || 'Erro ao criar usuário')
-      }
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleDesativar = async (id: string) => {
-    if(!confirm('Deseja realmente desativar este usuário?')) return
-    try {
-      await api.patch(`/users/${id}/desativar`)
-      carregarUsuarios()
-    } catch (error: any) {
-      alert(error.response?.data?.detail || 'Erro ao desativar usuário')
-    }
-  }
-
-  if (isLoading) return <div className="animate-pulse h-96 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+  const carregar = useCallback(async () => {
+    const { data } = await api.get('/usuarios')
+    setUsers(data)
+    if (!sel && data.length) setSel(data[0].id)
+  }, [sel])
+  useEffect(() => { carregar() }, []) // eslint-disable-line
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            Gestão de Usuários
-          </h1>
-          <p className="text-slate-500 mt-1">Gerencie os acessos, cargos e permissões da equipe.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Usuários & Acessos</h1>
+          <p className="text-neutral-500 mt-1">Defina, por pessoa, o que cada um <strong>vê</strong> e <strong>edita</strong> em cada módulo.</p>
         </div>
-
-        <button onClick={() => setIsModalOpen(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> Novo Usuário
-        </button>
+        {editavel && <button onClick={() => setNovo(true)} className="btn-primary"><UserPlus className="w-4 h-4" /> Novo usuário</button>}
       </div>
 
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
-              <tr>
-                <th className="px-6 py-4">Usuário</th>
-                <th className="px-6 py-4">Cargo & Setor</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Criado em</th>
-                <th className="px-6 py-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {usuarios.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">
-                        {u.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-slate-900">{u.name}</div>
-                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Mail className="w-3 h-3" /> {u.email}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col items-start gap-1">
-                      {u.role === 'admin' && <Badge variant="primary" icon={<Shield className="w-3 h-3"/>}>Admin</Badge>}
-                      {u.role === 'gestor' && <Badge variant="warning">Gestor</Badge>}
-                      {u.role === 'funcionario' && <Badge variant="success">Funcionário</Badge>}
-                      {u.sector && <span className="text-xs text-slate-400">{u.sector}</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {u.is_active ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ativo
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inativo
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-slate-500 text-xs">
-                    {formatarDataHora(u.created_at)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {u.id !== user?.id && u.is_active && (
-                      <button onClick={() => handleDesativar(u.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="grid lg:grid-cols-[300px_1fr] gap-5">
+        {/* Lista */}
+        <div className="card p-2 h-fit lg:max-h-[calc(100vh-200px)] overflow-y-auto">
+          {users.map((u) => (
+            <button key={u.id} onClick={() => setSel(u.id)}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition ${sel === u.id ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100'}`}>
+              <span className="w-9 h-9 rounded-full grid place-items-center text-white font-semibold text-sm shrink-0" style={{ background: u.avatar_cor }}>{u.nome[0]}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-medium truncate">{u.nome}</span>
+                <span className={`block text-xs truncate ${sel === u.id ? 'text-white/60' : 'text-neutral-500'}`}>{u.departamento_nome ?? u.cargo}</span>
+              </span>
+            </button>
+          ))}
         </div>
+
+        {/* Matriz */}
+        {sel ? <Matriz key={sel} userId={sel} editavel={editavel} onChange={carregar} /> : <div className="card p-10 text-center text-neutral-500">Selecione um usuário.</div>}
       </div>
 
-      {/* Modal Novo Usuário */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-slide-up">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Novo Usuário</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nome Completo</label>
-                <input required type="text" className="input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="João da Silva" />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">E-mail Corporativo</label>
-                <input required type="email" className="input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="joao@grupotrk.com" />
-              </div>
+      {novo && <NovoUsuario onClose={() => setNovo(false)} onSaved={() => { setNovo(false); carregar() }} />}
+    </div>
+  )
+}
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Senha Provisória</label>
-                <input required type="password" className="input" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
-              </div>
+function Matriz({ userId, editavel, onChange }: { userId: string; editavel: boolean; onChange: () => void }) {
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  const [modulos, setModulos] = useState<Modulo[]>([])
+  const [perm, setPerm] = useState<PermMap>({})
+  const [bloqueado, setBloqueado] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+  const [dirty, setDirty] = useState(false)
+  const [ok, setOk] = useState(false)
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nível de Acesso</label>
-                  <select className="input" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as UserRole})}>
-                    <option value="funcionario">Funcionário (Operação)</option>
-                    {user?.role === 'admin' && <option value="gestor">Gestor (Líder)</option>}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Setor</label>
-                  <input type="text" className="input" value={formData.sector} onChange={e => setFormData({...formData, sector: e.target.value})} placeholder="Ex: BPO" />
-                </div>
-              </div>
+  useEffect(() => {
+    api.get(`/usuarios/${userId}/permissoes`).then((r) => {
+      setUsuario(r.data.usuario); setModulos(r.data.modulos); setPerm(r.data.permissoes); setBloqueado(r.data.bloqueado_edicao)
+      setDirty(false)
+    })
+  }, [userId])
 
-              <div className="pt-4 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancelar</button>
-                <button type="submit" disabled={isSaving} className="btn-primary">
-                  {isSaving ? 'Salvando...' : 'Criar Usuário'}
-                </button>
-              </div>
-            </form>
+  const toggle = (key: string, acao: 'ver' | 'editar') => {
+    if (!editavel || bloqueado) return
+    setPerm((p) => {
+      const atual = p[key] ?? { ver: false, editar: false }
+      const next = { ...atual, [acao]: !atual[acao] }
+      if (acao === 'ver' && !next.ver) next.editar = false // sem ver => sem editar
+      if (acao === 'editar' && next.editar) next.ver = true // editar implica ver
+      return { ...p, [key]: next }
+    })
+    setDirty(true); setOk(false)
+  }
+
+  const salvar = async () => {
+    setSalvando(true)
+    try { await api.put(`/usuarios/${userId}`, { permissoes: perm }); setDirty(false); setOk(true); onChange(); setTimeout(() => setOk(false), 2000) }
+    finally { setSalvando(false) }
+  }
+
+  const grupos = [...new Set(modulos.map((m) => m.grupo))]
+  const liberados = Object.values(perm).filter((p) => p.ver).length
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="p-5 border-b border-neutral-100 flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <span className="w-11 h-11 rounded-full grid place-items-center text-white font-semibold" style={{ background: usuario?.avatar_cor }}>{usuario?.nome?.[0]}</span>
+          <div>
+            <p className="font-semibold">{usuario?.nome}</p>
+            <p className="text-xs text-neutral-500">{usuario?.email} · {usuario?.cargo} · <span className="text-emerald-600 font-medium">{liberados} módulos liberados</span></p>
           </div>
         </div>
+        {editavel && !bloqueado && (
+          <button onClick={salvar} disabled={!dirty || salvando} className={`btn ${dirty ? 'btn-primary' : 'btn-secondary'}`}>
+            {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : ok ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {ok ? 'Salvo!' : 'Salvar acessos'}
+          </button>
+        )}
+      </div>
+
+      {bloqueado && (
+        <div className="px-5 py-3 bg-neutral-50 text-sm text-neutral-600 flex items-center gap-2 border-b border-neutral-100">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" /> Diretor tem acesso total fixo — não editável.
+        </div>
       )}
+
+      <div className="p-3">
+        {grupos.map((g) => (
+          <div key={g} className="mb-3">
+            <p className="px-2 py-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">{g}</p>
+            <div className="space-y-1">
+              {modulos.filter((m) => m.grupo === g).map((m) => {
+                const p = perm[m.key] ?? { ver: false, editar: false }
+                return (
+                  <div key={m.key} className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-neutral-50">
+                    <div className="w-8 h-8 rounded-lg bg-neutral-100 grid place-items-center text-neutral-600 shrink-0"><Icon name={m.icone} className="w-4 h-4" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate flex items-center gap-1.5">{m.label} {m.sensivel && <Lock className="w-3 h-3 text-emerald-600" />}</p>
+                      <p className="text-xs text-neutral-400 truncate">{m.descricao}</p>
+                    </div>
+                    <Toggle icon={<Eye className="w-3.5 h-3.5" />} label="Ver" on={p.ver} dis={bloqueado || !editavel} onClick={() => toggle(m.key, 'ver')} />
+                    <Toggle icon={<Pencil className="w-3.5 h-3.5" />} label="Editar" on={p.editar} dis={bloqueado || !editavel} onClick={() => toggle(m.key, 'editar')} />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Toggle({ icon, label, on, dis, onClick }: { icon: React.ReactNode; label: string; on: boolean; dis?: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} disabled={dis}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
+        on ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-400 hover:bg-neutral-200'} ${dis ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      {icon} {label}
+    </button>
+  )
+}
+
+function NovoUsuario({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [deps, setDeps] = useState<Departamento[]>([])
+  const [form, setForm] = useState({ nome: '', email: '', senha: 'Trk@123', cargo: 'colaborador', departamento_id: '' })
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+
+  useEffect(() => { api.get('/departamentos').then((r) => setDeps(r.data)).catch(() => {}) }, [])
+
+  const salvar = async () => {
+    setSalvando(true); setErro('')
+    try { await api.post('/usuarios', { ...form, departamento_id: form.departamento_id || null }); onSaved() }
+    catch (e: any) { setErro(e?.response?.data?.detail ?? 'Erro ao criar') } finally { setSalvando(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+      <div className="card p-6 w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Novo usuário</h2>
+          <button onClick={onClose} className="p-1 text-neutral-400 hover:text-neutral-700"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-3">
+          <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+          <input className="input" placeholder="E-mail" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input className="input" placeholder="Senha provisória" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} />
+          <div className="grid grid-cols-2 gap-2">
+            <select className="input" value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value })}>
+              <option value="colaborador">Colaborador</option>
+              <option value="gestor">Gestor</option>
+              <option value="diretor">Diretor</option>
+            </select>
+            <select className="input" value={form.departamento_id} onChange={(e) => setForm({ ...form, departamento_id: e.target.value })}>
+              <option value="">Setor…</option>
+              {deps.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
+            </select>
+          </div>
+          <p className="text-xs text-neutral-400">As permissões são herdadas do setor — você ajusta depois na matriz.</p>
+          {erro && <div className="chip-danger w-full justify-center py-2">{erro}</div>}
+        </div>
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={onClose} className="btn-secondary">Cancelar</button>
+          <button onClick={salvar} disabled={!form.nome || !form.email || salvando} className="btn-primary">{salvando ? 'Criando…' : 'Criar'}</button>
+        </div>
+      </div>
     </div>
   )
 }

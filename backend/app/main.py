@@ -1,123 +1,51 @@
-# backend/app/main.py
-# Ponto de entrada da API do Portal TRK.
-# Responsabilidades:
-#   - Criar a aplicação FastAPI com lifespan (startup/shutdown)
-#   - Registrar middlewares (segurança, logging, rate limiting, CORS)
-#   - Incluir routers da API v1
-#   - Health check endpoint
-#   - Swagger/ReDoc apenas em desenvolvimento
+# trk-universe/backend/app/main.py
+# TRK OS — Sistema Operacional do Grupo TRK.
+# App novo, zero-dependência de infra para rodar (SQLite). Permissões por setor.
 
-from contextlib import asynccontextmanager
-
-import structlog
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.config import get_settings
-from app.core.dependencies import fechar_redis
-from app.core.middleware import configurar_middlewares
-
-logger = structlog.get_logger()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Gerencia startup e shutdown da aplicação."""
-    settings = get_settings()
-    logger.info("portal_trk_iniciando", environment=settings.ENVIRONMENT)
-    
-    # Auto-seed para deployments manuais no Render
-    try:
-        import sys
-        import os
-        sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-        from seed import seed
-        from app.db.session import async_session_factory, engine
-        from app.db.base import Base
-        from sqlalchemy import text
-        import app.db.models  # noqa: F401 — registra todos os models no metadata
-
-        # Cria tabelas faltantes de forma idempotente (inclui modelos novos
-        # como `automacoes` em bancos já existentes). Nunca remove dados.
-        try:
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-                # Patches aditivos de colunas (create_all não altera tabelas
-                # existentes). ADD COLUMN IF NOT EXISTS é idempotente no Postgres.
-                from sqlalchemy import text as _sql
-                for ddl in (
-                    "ALTER TABLE rotinas ADD COLUMN IF NOT EXISTS tipo_recorrencia VARCHAR(20) NOT NULL DEFAULT 'semanal'",
-                    "ALTER TABLE rotinas ADD COLUMN IF NOT EXISTS recorrencia_config JSONB NOT NULL DEFAULT '{}'",
-                ):
-                    await conn.execute(_sql(ddl))
-        except Exception as e:  # noqa: BLE001
-            logger.error(f"erro_create_all: {e}")
-
-        async with async_session_factory() as db:
-            try:
-                res = await db.execute(text("SELECT COUNT(*) FROM users"))
-                count = res.scalar()
-            except Exception:
-                # Tabelas não existem
-                count = 0
-                
-            if count == 0:
-                logger.info("banco_vazio_iniciando_seed")
-                await seed()
-    except Exception as e:
-        logger.error(f"erro_no_seed: {e}")
-
-    yield
-    # Shutdown: fechar conexões
-    await fechar_redis()
-    logger.info("portal_trk_finalizado")
+from .config import config
+from .db import Base, SessionLocal, engine
+from .routers import (
+    auth, automacoes, departamentos, empresas, meta, pipes, rotinas, saldos, skills, tarefas, usuarios,
+)
+from .seed import seed
 
 
 def criar_app() -> FastAPI:
-    """Factory da aplicação FastAPI."""
-    settings = get_settings()
+    app = FastAPI(title="TRK OS", version="1.0.0")
 
-    app = FastAPI(
-        title="Portal TRK API",
-        description="Sistema operacional interno do Grupo TRK — conciliação bancária, rotinas e gestão financeira",
-        version="1.0.0",
-        lifespan=lifespan,
-        # Swagger apenas em desenvolvimento
-        docs_url="/docs" if not settings.is_production else None,
-        redoc_url="/redoc" if not settings.is_production else None,
-        openapi_url="/openapi.json" if not settings.is_production else None,
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] if config.FRONTEND_URL == "*" else [config.FRONTEND_URL],
+        allow_credentials=False,  # auth via header Bearer (não cookies) => '*' é válido
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
-    # Registrar middlewares
-    configurar_middlewares(app)
+    @app.on_event("startup")
+    def _startup():
+        Base.metadata.create_all(bind=engine)
+        with SessionLocal() as db:
+            seed(db)
 
-    # Registrar routers
-    from app.api.v1.router import api_router
-    app.include_router(api_router, prefix="/api/v1")
+    @app.get("/health")
+    def health():
+        return {"status": "ok", "app": "TRK OS"}
 
-    # Health check
-    @app.get("/health", tags=["sistema"])
-    async def health_check():
-        """Endpoint de saúde para o Render e monitoramento."""
-        return {"status": "ok", "service": "portal-trk-api"}
-
-    # Handler global de exceções não tratadas
-    @app.exception_handler(Exception)
-    async def handler_erro_global(request, exc):
-        """Captura erros não tratados — nunca expõe stack trace ao cliente."""
-        logger.error(
-            "erro_nao_tratado",
-            path=request.url.path,
-            method=request.method,
-            erro=str(exc)[:200],
-        )
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Erro interno do servidor"},
-        )
-
+    app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+    app.include_router(meta.router, prefix="/api/meta", tags=["meta"])
+    app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuarios"])
+    app.include_router(departamentos.router, prefix="/api/departamentos", tags=["departamentos"])
+    app.include_router(saldos.router, prefix="/api/saldos", tags=["saldos"])
+    app.include_router(tarefas.router, prefix="/api/tarefas", tags=["tarefas"])
+    app.include_router(rotinas.router, prefix="/api/rotinas", tags=["rotinas"])
+    app.include_router(pipes.router, prefix="/api/pipes", tags=["pipes"])
+    app.include_router(automacoes.router, prefix="/api/automacoes", tags=["automacoes"])
+    app.include_router(skills.router, prefix="/api/skills", tags=["skills"])
+    app.include_router(empresas.router, prefix="/api/empresas", tags=["empresas"])
     return app
 
 
-# Instância global — usada pelo gunicorn
 app = criar_app()
