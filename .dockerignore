@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/__pycache__
+**/*.db
+**/*.sqlite3
+**/venv
+**/.venv
+.git
+.gitignore
+*.md
