@@ -1,5 +1,9 @@
 # TRK OS 🌐 — Sistema Operacional do Grupo TRK
 
+Business operations portal with backend-enforced module permissions and recurring workflows.
+
+Technical evidence, validation and limitations: [portfolio notes](docs/PORTFOLIO.md).
+
 Aplicativo **novo**, da empresa inteira (não só financeiro). Cada setor com seu acesso,
 o **gestor no controle das permissões**, bloqueio de informação por departamento.
 
